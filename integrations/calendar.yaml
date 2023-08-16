@@ -1,0 +1,23 @@
+calendar:
+  # Todoist
+  - platform: todoist
+    token: !secret todoist_api_key
+    custom_projects:
+      - name: 'All Chores'
+        include_projects:
+          - Chores
+
+      - name: 'Chores Today'
+        due_date_days: 1
+        include_projects:
+          - Chores
+
+      - name: 'Chores This Week'
+        due_date_days: 7
+        include_projects:
+          - Chores
+
+      - name: 'Chores This Month'
+        due_date_days: 30
+        include_projects:
+          - Chores

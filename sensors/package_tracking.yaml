@@ -1,0 +1,4 @@
+platform: email
+email: !secret gmail_address
+password: !secret gmail_app_password
+folder: !secret gmail_mail_tracking_folder

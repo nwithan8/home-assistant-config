@@ -1,0 +1,4 @@
+mqtt:
+  sensor:
+    - state_topic: !secret mqtt_zoneminder_topic
+      name: !secret mqtt_zoneminder_name

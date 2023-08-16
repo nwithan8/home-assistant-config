@@ -1,0 +1,6 @@
+platform: cups
+host: !secret cups_ip_address
+port: !secret cups_port
+is_cups_server: true
+printers:
+  - Main

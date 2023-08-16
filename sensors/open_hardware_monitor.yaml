@@ -1,0 +1,2 @@
+platform: openhardwaremonitor
+host: !secret nate_pc_ip

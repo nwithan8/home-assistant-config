@@ -1,0 +1,5 @@
+logger:
+  default: warning
+  logs:
+    homeassistant.components.zha: warning
+    zigpy: warning

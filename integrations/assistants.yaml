@@ -1,0 +1,4 @@
+google_assistant:
+  project_id: !secret google_assistant_project_id
+  service_account: !include ../googleassistantauth.json
+  report_state: true

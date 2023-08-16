@@ -1,0 +1,62 @@
+blueprint:
+  name: Send Shopping List Notification
+  description: >-
+    An automation that sends the shopping list to a device when a person enters a specific zone.
+  domain: automation
+  input:
+    list_path:
+      description: (Required) The path of the shopping list card/view
+      name: List View
+      default: "/shopping-list"
+      selector:
+        text:
+    zones:
+      description: (Required) Zones when entered to trigger a notification
+      name: Zones
+      selector:
+        entity:
+          multiple: true
+          domain: zone
+    person:
+      description: (Required) Person to track.
+      name: Person to track
+      selector:
+        entity:
+          domain: person
+    device:
+      description: (Required) Device to send shopping list to.
+      name: Device to notify
+      selector:
+        device:
+          integration: mobile_app
+          entity:
+            domain: device_tracker
+
+trigger:
+  - platform: state
+    entity_id: !input person
+
+condition:
+  - condition: and
+    conditions:
+      - condition: zone
+        entity_id: !input person
+        zone: !input zones
+        alias: Has entered target zone
+      - condition: template
+        value_template: "{{ trigger.to_state.state != trigger.from_state.state }}"
+        alias: "Not in same zone (do not double notify)"
+
+action:
+  - alias: "Send Shopping List to device as notification"
+    domain: mobile_app
+    type: notify
+    device_id: !input device
+    message: "Don't forget your shopping list!"
+    title: "Out Shopping"
+    data:
+      actions:
+        - action: URI
+          title: View Shopping List
+          uri: !input list_path
+mode: single

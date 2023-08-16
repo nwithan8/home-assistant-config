@@ -1,0 +1,8 @@
+dominos:
+  country_code: us
+  first_name: !secret dominos_first_name
+  last_name: !secret dominos_last_name
+  email: !secret dominos_email
+  phone: !secret dominos_phone
+  address: !secret dominos_address
+  show_menu: 1

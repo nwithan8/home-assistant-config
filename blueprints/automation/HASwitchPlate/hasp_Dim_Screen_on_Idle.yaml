@@ -1,0 +1,98 @@
+blueprint:
+  name: HASPone dim the display screen after a specified period of inactivity
+  description: '
+
+    ## Blueprint Version: `1.05.00`
+
+
+    # Description
+
+
+    Dim the screen backlight after a specified period of inactivity.
+
+    '
+  domain: automation
+  input:
+    haspdevice:
+      name: HASPone Device
+      description: Select the HASPone device
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: HASwitchPlate
+          model: HASPone v1.0.0
+          multiple: false
+    darkvalue:
+      name: Brightness to set on idle
+      description: Select the brightness value to become when idle. 0 will turn the
+        backlight off entirely.
+      default: 20
+      selector:
+        number:
+          min: 0.0
+          max: 100.0
+          mode: slider
+          unit_of_measurement: percent
+          step: 1.0
+    idletime:
+      name: Idle Time
+      description: Idle time in seconds
+      default: 30
+      selector:
+        number:
+          min: 5.0
+          max: 900.0
+          step: 5.0
+          mode: slider
+          unit_of_measurement: seconds
+    brightvalue:
+      name: Brightness to set on activity
+      description: Select the brightness value to become when activity is sensed.
+      default: 100
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          mode: slider
+          unit_of_measurement: percent
+          step: 1.0
+  source_url: https://github.com/HASwitchPlate/HASPone/blob/main/Home_Assistant/blueprints/hasp_Dim_Screen_on_Idle.yaml
+mode: restart
+max_exceeded: silent
+variables:
+  haspdevice: !input haspdevice
+  haspname: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{- entity|regex_replace(find=\"^sensor\\.\", replace=\"\", ignorecase=true)|regex_replace(find=\"_sensor(?:_\\d+|)$\",
+    replace=\"\", ignorecase=true) -}}\n  {%- endif -%}\n{%- endfor -%}"
+  darkvalue: !input darkvalue
+  brightvalue: !input brightvalue
+  idletime: !input idletime
+  lightcommandtopic: '{{ "hasp/" ~ haspname ~ "/brightness/set" }}'
+trigger_variables:
+  haspdevice: !input haspdevice
+  haspname: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{- entity|regex_replace(find=\"^sensor\\.\", replace=\"\", ignorecase=true)|regex_replace(find=\"_sensor(?:_\\d+|)$\",
+    replace=\"\", ignorecase=true) -}}\n  {%- endif -%}\n{%- endfor -%}"
+  haspsensor: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{ entity }}\n  {%- endif -%}\n{%- endfor -%}"
+  jsontopic: '{{ "hasp/" ~ haspname ~ "/state/json" }}'
+trigger:
+- platform: mqtt
+  topic: '{{jsontopic}}'
+condition:
+- condition: template
+  value_template: '{{ is_state(haspsensor, ''ON'') }}'
+- condition: template
+  value_template: '{{ ((trigger.payload_json.event_type is defined) and (trigger.payload_json.event_type
+    == ''button_short_press'')) }}'
+action:
+- service: mqtt.publish
+  data:
+    topic: '{{lightcommandtopic}}'
+    payload: '{{brightvalue}}'
+- delay:
+    seconds: '{{idletime|int}}'
+- service: mqtt.publish
+  data:
+    topic: '{{lightcommandtopic}}'
+    payload: '{{darkvalue}}'

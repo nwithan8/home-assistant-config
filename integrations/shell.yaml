@@ -1,0 +1,2 @@
+shell_command:
+  ntfy_send: 'bash /config/shell/ntfy_send.sh -s "{{ server }}" -t "{{ topic }}" -m "{{ message }}" -h "{{ headers }}" -a "{{ auth }}"'

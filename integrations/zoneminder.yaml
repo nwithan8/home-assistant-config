@@ -1,0 +1,4 @@
+zoneminder:
+  - host: !secret zoneminder_ip
+    ssl: false
+    verify_ssl: false

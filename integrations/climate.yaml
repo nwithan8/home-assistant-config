@@ -1,0 +1,10 @@
+climate:
+  # Garage AC
+  - platform: smartir
+    name: Garage AC
+    unique_id: garage_ac
+    device_code: !secret garage_ir_blaster_device_code
+    controller_data: remote.garage_ir_blaster
+    temperature_sensor: sensor.garage_temperature
+    humidity_sensor: sensor.garage_humidity
+    delay: 1

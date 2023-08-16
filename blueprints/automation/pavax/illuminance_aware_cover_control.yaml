@@ -1,0 +1,175 @@
+blueprint:
+  name: Illuminance aware cover control
+  description: 'Close cover based on a illuminance sensor.  Allow manual control to
+    open the cover again, but reactivate the automatic control again after a defined
+    time. Optionally define state sensors to prevent re-opening again. For Example
+    when a media_player is playing.
+
+    '
+  domain: automation
+  source_url: https://gist.github.com/pavax/ed424e1d7bbb1c69b7e33e60d1415b5a
+  input:
+    cover_control:
+      name: Cover Control
+      description: This cover to control
+      selector:
+        entity:
+          filter:
+          - domain:
+            - cover
+          multiple: false
+    cover_position:
+      name: Cover Position
+      description: Set the position of the covert (0=closed and 100=open)
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 100.0
+          step: 1.0
+          mode: slider
+    illuminance_sensor:
+      name: Illuminance Sensor
+      description: Sensor that decides if it is too bright
+      selector:
+        entity:
+          filter:
+          - domain:
+            - sensor
+            device_class:
+            - illuminance
+          multiple: false
+    illuminance_threshold:
+      name: Illumincance Threshold
+      description: 'Defines the illumincance threshold above which the cover should
+        close '
+      default: 10000
+      selector:
+        number:
+          min: 0.0
+          max: 100000.0
+          step: 100.0
+          unit_of_measurement: lux
+          mode: slider
+    illuminance_time_duration:
+      name: Illumincance Time Duration
+      description: Defines the time to given illuminance sensor must be stay above/below
+        the threshold before the cover is closed/opened again
+      default: 00:01:00
+      selector:
+        duration: {}
+    manual_control_wait_time:
+      name: Manual Control Wait Time
+      description: Defines the time to gain control again, after the cover was manualy
+        opened
+      default: 00:05:00
+      selector:
+        time: {}
+    condition_sensor_01:
+      name: 1. Condition Sensor (Optional)
+      description: Sensor to prevent to re-open the cover again
+      default:
+      selector:
+        entity: {}
+    condition_state_01:
+      name: 1. Condition Sensor State (Optional)
+      description: state the given `1. Condition Sensor` must have to prevent re-opening
+        the cover again
+      default: 'on'
+      selector:
+        text: {}
+    condition_time_01:
+      name: 1. Condition Sensor State Time (Optional)
+      description: for how long the `2. Condition Sensor` must have transitioned away
+        from the `state` to re-open the cover again when `illuminance` is below the
+        treshold
+      default: 00:00:00
+      selector:
+        time: {}
+    condition_sensor_02:
+      name: 2. Condition Sensor (Optional)
+      description: Sensor to prevent to re-open the cover again
+      default:
+      selector:
+        entity: {}
+    condition_state_02:
+      name: 2. Condition Sensor State (Optional)
+      description: state the given `2. Condition Sensor` must have to prevent re-opening
+        the cover again
+      default: 'on'
+      selector:
+        text: {}
+    condition_time_02:
+      name: 2. Condition Sensor State Time (Optional)
+      description: for how long the `2. Condition Sensor` must have transitioned away
+        from the `state` to re-open the cover again when `illuminance` is below the
+        treshold
+      default: 00:00:00
+      selector:
+        time: {}
+variables:
+  condition_sensor_01: !input condition_sensor_01
+  condition_state_01: !input condition_state_01
+  condition_sensor_02: !input condition_sensor_02
+  condition_state_02: !input condition_state_02
+trigger:
+- platform: numeric_state
+  id: Illuminance above the threshold for the specifed amount of time
+  entity_id: !input illuminance_sensor
+  above: !input illuminance_threshold
+  for: !input illuminance_time_duration
+- platform: numeric_state
+  id: Illuminance below the threshold for the specifed amount of time
+  entity_id: !input illuminance_sensor
+  below: !input illuminance_threshold
+  for: !input illuminance_time_duration
+- platform: numeric_state
+  id: Cover position changed to be below the closed-position for the specifed amount
+    of time
+  entity_id: !input cover_control
+  attribute: current_position
+  above: !input cover_position
+  for: !input manual_control_wait_time
+- platform: state
+  id: Condition sensor 01 changed from preventing state
+  entity_id: !input condition_sensor_01
+  from: !input condition_state_01
+  for: !input condition_time_01
+- platform: state
+  id: Condition sensor 02 changed from preventing state
+  entity_id: !input condition_sensor_02
+  from: !input condition_state_02
+  for: !input condition_time_02
+- platform: homeassistant
+  event: start
+  id: restart
+- platform: event
+  event_type: automation_reloaded
+  id: system_reload
+condition: []
+action:
+- if:
+  - condition: numeric_state
+    alias: Illuminance too bright
+    entity_id: !input illuminance_sensor
+    above: !input illuminance_threshold
+  then:
+  - service: cover.set_cover_position
+    target:
+      entity_id: !input cover_control
+    data:
+      position: !input cover_position
+  else:
+  - condition: template
+    alias: 1. condition to prevent automatic re-opening
+    value_template: '{{ condition_sensor_01 == {} or not is_state(condition_sensor_01,condition_state_01)
+      }}'
+  - condition: template
+    alias: 2. condition to prevent automatic re-opening
+    value_template: '{{ condition_sensor_02 == {} or not is_state(condition_sensor_02,condition_state_02)
+      }}'
+  - service: cover.open_cover
+    target:
+      entity_id: !input cover_control
+mode: single
+max_exceeded: silent

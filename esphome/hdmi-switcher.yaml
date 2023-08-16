@@ -1,0 +1,63 @@
+esphome:
+  name: hdmi-switcher
+  friendly_name: HDMI Switcher
+
+esp8266:
+  board: esp01_1m
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "GNKS+cErPypDRXC85FZeRiQ5wLYC5MkzUIbge9U3hEE="
+
+ota:
+  password: "9021b15e3224068eb72fd8d1080f3ce3"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Hdmi-Switcher Fallback Hotspot"
+    password: "QjabsOqgpBxS"
+
+captive_portal:
+
+output:
+  - platform: gpio
+    pin:
+      number: 2
+      inverted: true
+    id: 'output_toggle'
+
+button:
+  - platform: output
+    name: "Toggle HDMI Port"
+    output: 'output_toggle'
+    duration: 500ms
+
+binary_sensor:
+  - platform: gpio
+    name: "HDMI Port Status"
+    id: hdmi_pin
+    internal: true
+    pin: 4
+    publish_initial_state: true
+    on_state:
+      then:
+        - lambda: !lambda |-
+            if (id(hdmi_pin).state) {
+              id(hdmi_port).publish_state("hdmi2");
+            } else {
+              id(hdmi_port).publish_state("hdmi1");
+            }
+
+text_sensor:
+  - platform: template
+    id: hdmi_port
+    name: "HDMI Port"
+    

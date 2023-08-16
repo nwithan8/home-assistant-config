@@ -1,0 +1,7 @@
+# RTD train times
+platform: gtfs
+origin: !secret rtd_origin
+destination: !secret rtd_destination
+data: rtd_google_transit.zip
+name: !secret rtd_route_name
+include_tomorrow: true

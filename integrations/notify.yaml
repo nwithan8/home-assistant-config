@@ -1,0 +1,5 @@
+notify:
+  # Twilio SMS
+  - name: Twilio SMS
+    platform: twilio_sms
+    from_number: !secret twilio_number

@@ -1,0 +1,5 @@
+media_player:
+  # WiiM hub
+  - platform: wiim_custom
+    host: !secret wiim_ip_address
+    name: !secret wiim_name

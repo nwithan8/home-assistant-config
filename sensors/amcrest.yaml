@@ -1,0 +1,8 @@
+platform: rest
+resource: !secret amcrest_resource
+username: !secret amcrest_username
+password: !secret amcrest_password
+authentication: digest
+name: Amcrest Doorbell Count Sensor
+value_template: >
+  {{value.split('=')[-1]}}

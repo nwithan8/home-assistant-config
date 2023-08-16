@@ -1,0 +1,438 @@
+blueprint:
+  name: HASPone p[x].b[y] displays the current weather condition with icons
+  description: '
+
+    ## Blueprint Version: `1.05.00`
+
+
+    # Description
+
+
+    A HASPone button displays the current weather condition on the right with a matching
+    icon on the left
+
+
+    ![Preview](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/hasp_Display_Weather_Condition_with_Icon.png)
+
+
+    ## HASPone Page and Button reference
+
+
+    <details>
+
+
+    This automation is designed to work with the full-width buttons found on pages
+    1-3
+
+
+    | Pages 1-3 |
+
+    |-----------|
+
+    | ![Pages 1-3](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p1-p3_4buttons.png)
+    |
+
+
+    </details>
+
+
+    ## Nextion color codes
+
+
+    <details>
+
+
+    The Nextion environment utilizes RGB 565 encoding.  [Use this handy convertor](https://nodtem66.github.io/nextion-hmi-color-convert/index.html)
+    to select your colors and convert to the RGB 565 format.
+
+
+    Here are some example colors:
+
+
+    | Color  | Code  |
+
+    |--------|-------|
+
+    | White  | 65535 |
+
+    | Black  | 0     |
+
+    | Grey   | 25388 |
+
+    | Red    | 63488 |
+
+    | Green  | 2016  |
+
+    | Blue   | 31    |
+
+    | Yellow | 65504 |
+
+    | Orange | 64512 |
+
+    | Brown  | 48192 |
+
+
+    </details>
+
+    '
+  domain: automation
+  input:
+    haspdevice:
+      name: HASPone Device
+      description: Select the HASPone device
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: HASwitchPlate
+          model: HASPone v1.0.0
+          multiple: false
+    hasppage:
+      name: HASPone Page
+      description: Select the HASPone page (1-3) for the temperature
+      default: 1
+      selector:
+        number:
+          min: 1.0
+          max: 3.0
+          mode: slider
+          unit_of_measurement: page
+          step: 1.0
+    haspbutton:
+      name: HASPone Button
+      description: Select the HASPone button (4-7) for the temperature.  Refer to
+        the HASPone Page and Button reference above.
+      default: 4
+      selector:
+        number:
+          min: 4.0
+          max: 7.0
+          mode: slider
+          unit_of_measurement: button
+          step: 1.0
+    weather_provider:
+      name: Weather provider
+      description: Select the weather provider to obtain the temperature
+      selector:
+        entity:
+          domain: weather
+          multiple: false
+    selected_fgcolor:
+      name: Selected foreground color
+      description: Selected foreground color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme selected foreground
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    selected_bgcolor:
+      name: Selected background color
+      description: Selected background color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme selected background
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    unselected_fgcolor:
+      name: Unselected foreground color
+      description: Unselected foreground color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme unselected foreground
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    unselected_bgcolor:
+      name: Unselected background color
+      description: Unselected background color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme unselected background
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    colorize_icon:
+      name: Colorize weather icon
+      description: When enabled, weather condition icon will be colored based on the
+        condition (eg, sunny will be yellow).  If disabled, use the colors selected
+        above.
+      default: true
+      selector:
+        boolean: {}
+  source_url: https://github.com/HASwitchPlate/HASPone/blob/main/Home_Assistant/blueprints/hasp_Display_Weather_Condition_with_Icon.yaml
+mode: parallel
+max_exceeded: silent
+variables:
+  haspname: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{- entity|regex_replace(find=\"^sensor\\.\", replace=\"\", ignorecase=true)|regex_replace(find=\"_sensor(?:_\\d+|)$\",
+    replace=\"\", ignorecase=true) -}}\n  {%- endif -%}\n{%- endfor -%}"
+  haspsensor: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{ entity }}\n  {%- endif -%}\n{%- endfor -%}"
+  hasppage: !input hasppage
+  haspbutton: !input haspbutton
+  weather_provider: !input weather_provider
+  selected_fgcolor: !input selected_fgcolor
+  selected_bgcolor: !input selected_bgcolor
+  unselected_fgcolor: !input unselected_fgcolor
+  unselected_bgcolor: !input unselected_bgcolor
+  colorize_icon: !input colorize_icon
+  haspobject: '{{ "p[" ~ hasppage ~ "].b[" ~ haspbutton ~ "]" }}'
+  commandtopic: '{{ "hasp/" ~ haspname ~ "/command/" ~ haspobject }}'
+  jsoncommandtopic: '{{ "hasp/" ~ haspname ~ "/command/json" }}'
+  jsontopic: '{{ "hasp/" ~ haspname ~ "/state/json" }}'
+  icon: "{%- set condition=states(weather_provider) -%} {%- if condition == \"clear-night\"
+    -%}\n  \n{%- elif condition == \"cloudy\" -%}\n  \n{%- elif condition == \"fog\"
+    -%}\n  \n{%- elif condition == \"hail\" -%}\n  \n{%- elif condition == \"lightning\"
+    -%}\n  \n{%- elif condition == \"lightning-rainy\" -%}\n  \n{%- elif condition
+    == \"partlycloudy\" -%}\n  \n{%- elif condition == \"pouring\" -%}\n  \n{%-
+    elif condition == \"rainy\" -%}\n  \n{%- elif condition == \"snowy\" -%}\n  \n{%-
+    elif condition == \"snowy-rainy\" -%}\n  \n{%- elif condition == \"sunny\" -%}\n
+    \ \n{%- elif condition == \"windy\" -%}\n  \n{%- elif condition == \"windy-variant\"
+    -%}\n  \n{%- elif condition == \"exceptional\" -%}\n  \n{%- else -%}\n  \n{%-
+    endif -%}"
+  text: "{{-\n  states(weather_provider) |\n  replace(\"windy-variant\",\"windy\")
+    |\n  replace(\"clear-night\",\"clear night\") |\n  replace(\"partlycloudy\",\"partly
+    cloudy\") |\n  replace(\"lightning-rainy\",\"lightning & rain\") |\n  replace(\"snowy-rainy\",\"snow
+    & rain\") |\n  title\n-}}"
+  font: "{%- set weatherlength = text | length -%} {%- if weatherlength < 7 -%}\n
+    \ 8\n{%- elif weatherlength < 12 -%}\n  7\n{%- else -%}\n  6\n{%- endif -%}"
+  ypos: '{{(haspbutton|int - 4) * 67 + 2}}'
+  xpos: 0
+  iconwidth: 65
+  iconheight: 65
+  iconfont: 8
+  xcen: 2
+  ycen: 1
+  activepage: "{%- set activepage = namespace() -%} {%- for entity in device_entities(haspdevice)
+    -%}\n  {%- if entity|regex_search(\"^number\\..*_active_page(?:_\\d+|)$\") -%}\n
+    \   {%- set activepage.entity=entity -%}\n  {%- endif -%}\n{%- endfor -%} {{ states(activepage.entity)
+    | int(default=-1) }}"
+  selectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedforegroundcolor/rgb" }}'
+  selectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedbackgroundcolor/rgb" }}'
+  unselectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedforegroundcolor/rgb"
+    }}'
+  unselectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedbackgroundcolor/rgb"
+    }}'
+  selectedfg: "{%- if (selected_fgcolor|int) >= 0 -%}\n  {{ selected_fgcolor }}\n{%-
+    else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_selected_foreground_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  selectedbg: "{%- if (selected_bgcolor|int) >= 0 -%}\n  {{ selected_bgcolor }}\n{%-
+    else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_selected_background_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  unselectedfg: "{%- if (unselected_fgcolor|int) >= 0 -%}\n  {{ unselected_fgcolor
+    }}\n{%- else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_unselected_foreground_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  unselectedbg: "{%- if (unselected_bgcolor|int) >= 0 -%}\n  {{ unselected_bgcolor
+    }}\n{%- else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_unselected_background_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  icon_color: "{%- if not colorize_icon -%}\n  {{ selectedfg }}\n{%- else -%}\n  {%-
+    set condition=states(weather_provider) -%}\n  {%- if condition == \"clear-night\"
+    -%}\n    6350\n  {%- elif condition == \"cloudy\" -%}\n    29779\n  {%- elif condition
+    == \"fog\" -%}\n    29779\n  {%- elif condition == \"hail\" -%}\n    29779\n  {%-
+    elif condition == \"lightning\" -%}\n    65504\n  {%- elif condition == \"lightning-rainy\"
+    -%}\n    65504\n  {%- elif condition == \"partlycloudy\" -%}\n    29779\n  {%-
+    elif condition == \"pouring\" -%}\n    29779\n  {%- elif condition == \"rainy\"
+    -%}\n    29779\n  {%- elif condition == \"snowy\" -%}\n    1535\n  {%- elif condition
+    == \"snowy-rainy\" -%}\n    1535\n  {%- elif condition == \"sunny\" -%}\n    65504\n
+    \ {%- elif condition == \"windy\" -%}\n    1535\n  {%- elif condition == \"windy-variant\"
+    -%}\n    1535\n  {%- elif condition == \"exceptional\" -%}\n    63488\n  {%- else
+    -%}\n    {{ selected_fgcolor }}\n  {%- endif -%}\n{%- endif -%}  "
+trigger_variables:
+  haspdevice: !input haspdevice
+  haspname: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{- entity|regex_replace(find=\"^sensor\\.\", replace=\"\", ignorecase=true)|regex_replace(find=\"_sensor(?:_\\d+|)$\",
+    replace=\"\", ignorecase=true) -}}\n  {%- endif -%}\n{%- endfor -%}"
+  haspsensor: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{ entity }}\n  {%- endif -%}\n{%- endfor -%}"
+  jsontopic: '{{ "hasp/" ~ haspname ~ "/state/json" }}'
+  selectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedforegroundcolor/rgb" }}'
+  selectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedbackgroundcolor/rgb" }}'
+  unselectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedforegroundcolor/rgb"
+    }}'
+  unselectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedbackgroundcolor/rgb"
+    }}'
+trigger:
+- platform: state
+  entity_id: !input weather_provider
+- platform: homeassistant
+  event: start
+- platform: template
+  value_template: '{{ is_state(haspsensor, ''ON'') }}'
+- platform: mqtt
+  topic: '{{jsontopic}}'
+- platform: mqtt
+  topic: '{{selectedfgtopic}}'
+- platform: mqtt
+  topic: '{{selectedbgtopic}}'
+- platform: mqtt
+  topic: '{{unselectedfgtopic}}'
+- platform: mqtt
+  topic: '{{unselectedbgtopic}}'
+condition:
+- condition: template
+  value_template: '{{ is_state(haspsensor, ''ON'') }}'
+action:
+- choose:
+  - conditions:
+    - condition: template
+      value_template: "{{-\n  (trigger is not defined)\nor\n  (trigger.platform is
+        none)\nor\n  ((trigger.platform == 'homeassistant') and (trigger.event ==
+        'start'))\nor\n  ((trigger.platform == 'template') and (trigger.entity_id
+        == haspsensor) and (trigger.to_state.state == 'ON'))\n-}}"
+    sequence:
+    - service: mqtt.publish
+      data:
+        topic: '{{jsoncommandtopic}}'
+        payload: '["{{haspobject}}.font={{font}}", "{{haspobject}}.xcen={{xcen}}",
+          "{{haspobject}}.ycen={{ycen}}", "{{haspobject}}.pco={{selectedfg}}", "{{haspobject}}.bco={{selectedbg}}",
+          "{{haspobject}}.pco2={{unselectedfg}}", "{{haspobject}}.bco2={{unselectedbg}}",
+          "{{haspobject}}.txt=\"{{text}} \"" {%- if activepage|int == hasppage|int
+          -%} ,"delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{icon_color}},0,1,1,3,\"{{icon}}\""
+          {%- endif -%}]'
+  - conditions:
+    - condition: template
+      value_template: '{{ (trigger.platform == "state") and (trigger.entity_id ==
+        weather_provider) }}'
+    sequence:
+    - service: mqtt.publish
+      data:
+        topic: '{{jsoncommandtopic}}'
+        payload: '["{{haspobject}}.pco={{selectedfg}}", "{{haspobject}}.font={{font}}",
+          "{{haspobject}}.txt=\"{{text}} \"" {%- if activepage|int == hasppage|int
+          -%} ,"delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{icon_color}},0,1,1,3,\"{{icon}}\""
+          {%- endif -%}]'
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.platform == "mqtt" }}'
+    sequence:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == jsontopic) and trigger.payload_json
+            is defined }}'
+        sequence:
+        - choose:
+          - conditions:
+            - condition: template
+              value_template: '{{ (trigger.topic == jsontopic ) and (trigger.payload_json.event
+                == haspobject ) and (trigger.payload_json.value == "OFF") and (activepage|int
+                == hasppage|int)}}'
+            sequence:
+            - service: mqtt.publish
+              data:
+                topic: '{{jsoncommandtopic}}'
+                payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{icon_color}},0,1,1,3,\"{{icon}}\""]'
+          - conditions:
+            - condition: template
+              value_template: '{{ (trigger.topic == jsontopic ) and (trigger.payload_json.event
+                == "page" ) and (trigger.payload_json.value == hasppage|int) }}'
+            sequence:
+            - service: mqtt.publish
+              data:
+                topic: '{{jsoncommandtopic}}'
+                payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{icon_color}},0,1,1,3,\"{{icon}}\""]'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == selectedfgtopic) and ((selected_fgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.pco'
+            payload: '{{trigger.payload}}'
+        - condition: template
+          value_template: '{{ activepage|int == hasppage|int }}'
+        - delay: '00:00:00.5'
+        - service: mqtt.publish
+          data:
+            topic: '{{jsoncommandtopic}}'
+            payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{icon_color}},0,1,1,3,\"{{icon}}\""]'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == selectedbgtopic) and ((selected_bgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.bco'
+            payload: '{{trigger.payload}}'
+        - condition: template
+          value_template: '{{ activepage|int == hasppage|int }}'
+        - delay: '00:00:00.5'
+        - service: mqtt.publish
+          data:
+            topic: '{{jsoncommandtopic}}'
+            payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{icon_color}},0,1,1,3,\"{{icon}}\""]'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == unselectedfgtopic) and ((unselected_fgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.pco2'
+            payload: '{{trigger.payload}}'
+        - condition: template
+          value_template: '{{ activepage|int == hasppage|int }}'
+        - delay: '00:00:00.5'
+        - service: mqtt.publish
+          data:
+            topic: '{{jsoncommandtopic}}'
+            payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{icon_color}},0,1,1,3,\"{{icon}}\""]'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == unselectedbgtopic) and ((unselected_bgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.bco2'
+            payload: '{{trigger.payload}}'
+        - condition: template
+          value_template: '{{ activepage|int == hasppage|int }}'
+        - delay: '00:00:00.5'
+        - service: mqtt.publish
+          data:
+            topic: '{{jsoncommandtopic}}'
+            payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{icon_color}},0,1,1,3,\"{{icon}}\""]'

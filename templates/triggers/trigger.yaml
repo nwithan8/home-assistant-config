@@ -1,0 +1,8 @@
+- trigger: 
+      - platform: state
+        entity_id: cover.garage_door
+        from: cover.close_cover
+        to: cover.open_cover
+  sensor:
+      - name: Garage Door Last Opened
+        state:  "{{ now() }}"

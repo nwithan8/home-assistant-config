@@ -1,0 +1,5 @@
+platform: tautulli
+api_key: !secret tautulli_api_key
+host: !secret tautulli_host
+port: !secret tautulli_port
+ssl: true

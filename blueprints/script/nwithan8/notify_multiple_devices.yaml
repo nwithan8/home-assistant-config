@@ -1,0 +1,52 @@
+blueprint:
+  name: Notify Multiple Devices
+  description: >-
+    A script that sends a notification to multiple targets
+  domain: script
+  input:
+    notify_devices:
+      name: Devices to notify
+      description: Devices needs to run the official Home Assistant app to receive notifications.
+      selector:
+        device:
+          multiple: true
+          integration: mobile_app
+
+mode: restart
+
+fields:
+  title:
+    description: The title of the notification
+    example: State change
+    name: Title
+    required: false
+    default: ""
+    selector:
+      text:
+  message:
+    description: The message content
+    example: The light is on!
+    name: Message
+    required: true
+    selector:
+      text:
+  extra_data:
+    description: Extra payload data to send
+    example: '{ "key": "value" }'
+    name: Extra payload data
+    required: false
+    default: ""
+    selector:
+      object: null
+
+sequence:
+  - alias: "Send notification to each device"
+    repeat:
+      for_each: !input notify_devices
+      sequence:
+        - alias: "Send notification"
+          service: 'notify.mobile_app_{{ device_attr(repeat.item, "name") | replace("’","") | replace(" ","_") | lower}}'
+          data:
+            title: "{{ title }}"
+            message: "{{ message }}"
+            data: "{{ extra_data or {} }}"

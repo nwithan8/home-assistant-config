@@ -1,0 +1,1314 @@
+blueprint:
+  name: Sensor Light Add On
+  description: "# Sensor Light Add On - Media & Movie - House Alarm - Smoke Alarm
+    + More\n**Version: 1.3**\n\nBelow are some use cases.\n\n  - Media - Cinema Room
+    - Turn ON different lights when watching a movie.\n  - House Alarm - Turn ON lights
+    when your house alarm has been activated.\n  - Smoke Detector - Turn on lights
+    and exhaust fans when smoke detector has been activated.\n\n\nLet us know what
+    you think of this blueprint and for community support including updates: [Click
+    Here](https://community.home-assistant.io/t/591824?u=blacky)\n\n**The Automation
+    Process:**\n  - The example below will be for a movie night or use in a cinema
+    room. It can also be used to turn on lights when your house alarm has been activated
+    or turn on lights and exhaust fans when a smoke detector has been activated. For
+    more examples and information check out \"The Settings & Best Practice Guidelines:\"
+    [Click Here](https://community.home-assistant.io/t/591824/3?u=blacky)\n  - When
+    a movie is being played (Started), the lights, switches and or scenes are turned
+    ON to a movie mode set by you.\n  - You have the option to turn OFF selected lights
+    and or switches at the start of movie.\n  - You have the option to use \"Intermission\",
+    so when a movie is paused it can turn ON different slightly brighter lights to
+    keep you in the movie mode.\n  - When a movie is stopped, the lights, switches
+    and or scenes are turned OFF.\n  - You have the option to turn ON selected lights,
+    switches and or scenes at the end of a movie.\n  - You have the option to use
+    the \"Automation Link Option\". This disables other automations via a By-pass
+    control option when a movie is activated. It is designed to work with my other
+    blueprints.\n  - You have the option to use the \"Sun Elevation\". This is used
+    for adding a condition to only work when it is dark by setting the suns position
+    to the horizon.\n  - You have the option to set an Ambient Light Sensor and set
+    the LUX value. This is used for adding a condition to only work when it is dark
+    or below the Ambient Light LUX Value.\n  - You have the option to use the \"By-pass\".
+    This allows you to add a by-pass switch to manually By-pass the automation.\n\n**Automation
+    Link Option:** The automation link option works best when used with my other blueprints
+    like \U0001F4A1 [Sensor Light](https://community.home-assistant.io/t/481048),
+    \U0001F6BF [Bathroom Humidity Exhaust Fan](https://community.home-assistant.io/t/509992)
+    + other blueprints of mine so, be sure to check them out.\n\nRequired = *\n\nNeed
+    help? See our FAQ: [Click Here](https://community.home-assistant.io/t/591824/2?u=blacky)\n\n**If
+    you like my blueprints, and would like to show your support or just say thank
+    you?** [Click Here](https://www.paypal.com/donate/?hosted_button_id=WAZS3QSDTPGA8)
+    \U0001F642\n"
+  domain: automation
+  input:
+    trigger_entities:
+      name: Trigger *
+      description: This is your Trigger. Example - Media player, Alarm, Smoke detector,
+        etc.
+      selector:
+        entity:
+          multiple: true
+    trigger_on_state:
+      name: Trigger - ON State *
+      description: The state/s your trigger will be in to activate the automation.
+      selector:
+        select:
+          multiple: true
+          mode: list
+          options:
+          - label: ON.
+            value: 'on'
+          - label: Playing
+            value: playing
+          custom_value: false
+    trigger_off_state:
+      name: Trigger - OFF State *
+      description: The state/s your trigger will be in to deactivate the automation.
+      selector:
+        select:
+          multiple: true
+          mode: list
+          options:
+          - label: OFF.
+            value: 'off'
+          - label: Turned OFF
+            value: turned_off
+          - label: Idle
+            value: idle
+          - label: Paused
+            value: paused
+          - label: Standby
+            value: standby
+          custom_value: false
+    time_delay:
+      name: Time Delay
+      description: This is the time delay before the automation turns OFF or goes
+        to an intermission mode. It is used as a buffer. If you press the wrong button
+        on the remote accidently turning the automation OFF or going to an intermission
+        mode, you will have time to correct your actions before your lights change.
+      default: 1.5
+      selector:
+        number:
+          min: 0.0
+          max: 10.0
+          step: 0.5
+          unit_of_measurement: seconds
+          mode: slider
+    light_switch:
+      name: Lights - Switches - Scenes *
+      description: 'The lights that get turned on by the trigger sensor/s. You can
+        also add switches and scenes. If adding a scene please read "Scenes To Turn
+        OFF" below.
+
+        **NOTE** - You can only use entities. Areas and devices are not supported.'
+      selector:
+        target:
+          entity:
+          - domain:
+            - light
+            - switch
+            - scene
+    end_scenes:
+      name: Scenes To Turn OFF
+      description: If you have selected a scene to be turned ON above in "Lights -
+        Switches - Scenes" or below in "Intermission - Lights - Switches - Scenes"
+        then you will need to create another scene. The scene must have all the lights
+        you have used in scenes for this automation, with all the lights OFF and select
+        it here.
+      default: []
+      selector:
+        entity:
+          multiple: true
+          domain:
+          - scene
+    include_light_control:
+      name: Use The Light Control Options (Optional)
+      description: Select any option you would like to use. It will only control a
+        "light" entity that supports each option you select. The settings are below
+        for each option.
+      default: []
+      selector:
+        select:
+          multiple: true
+          options:
+          - label: Use brightness
+            value: use_brightness
+          - label: Use colour temperature
+            value: use_colour_temperature
+          - label: Use transition
+            value: use_transition
+          custom_value: false
+    light_brightness:
+      name: Brightness
+      description: The brightness setting for the lights when they are turned ON.
+      default: 100
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          mode: slider
+          step: 1.0
+          unit_of_measurement: '%'
+    light_colour_temperature:
+      name: Colour Temperature
+      description: The colour temperature setting for the lights when they are turned
+        ON.
+      default: 5000
+      selector:
+        number:
+          min: 2000.0
+          max: 8000.0
+          mode: slider
+          step: 100.0
+          unit_of_measurement: kelvin
+    light_transition_on:
+      name: Transition - ON
+      description: The transition setting for the lights when they are turned ON.
+      default: 1
+      selector:
+        number:
+          min: 0.0
+          max: 180.0
+          mode: slider
+          step: 5.0
+          unit_of_measurement: seconds
+    light_transition_off:
+      name: Transition - OFF
+      description: The transition setting for the lights when they are turned OFF.
+      default: 1
+      selector:
+        number:
+          min: 0.0
+          max: 180.0
+          mode: slider
+          step: 5.0
+          unit_of_measurement: seconds
+    include_start_turn_off:
+      name: Use the Start Turn OFF Options (Optional)
+      description: The lights and switches to turn OFF when the automation first starts.
+      default: disable_start_turn_off
+      selector:
+        select:
+          options:
+          - label: Enable the start turn OFF options
+            value: enable_start_turn_off
+          - label: Disable the start turn OFF options
+            value: disable_start_turn_off
+          multiple: false
+          custom_value: false
+    off_light_switch:
+      name: Start Turn OFF - Lights - Switches
+      description: 'Enter the lights and switches you would like to turn OFF when
+        the automation first starts.
+
+        **NOTE** - You can only use entities. Areas and devices are not supported.'
+      default: {}
+      selector:
+        target:
+          entity:
+          - domain:
+            - light
+            - switch
+    off_include_light_control:
+      name: Start Turn OFF - Use The Light Control Options (Optional)
+      description: Select any option you would like to use. It will only control a
+        "light" entity that supports each option you select. The settings are below
+        for each option.
+      default: []
+      selector:
+        select:
+          multiple: true
+          options:
+          - label: Use transition
+            value: use_transition
+          custom_value: false
+    off_light_transition_off:
+      name: Start Turn OFF - Transition - OFF
+      description: The transition setting for the lights when they are turned OFF.
+      default: 1
+      selector:
+        number:
+          min: 0.0
+          max: 180.0
+          mode: slider
+          step: 5.0
+          unit_of_measurement: seconds
+    include_intermission:
+      name: Use The Intermission Option (Optional)
+      description: This is useful for turning on different lights and / or setting
+        a different brightness level, changing the colour setting or selecting a different
+        scene. It can be used for having brighter lights come ON when pausing a movie
+        (Intermission) or having different lights / switches and or scenes come ON
+        or OFF when a smoke detector / alarm system is silenced but still active.
+      default: intermission_disable
+      selector:
+        select:
+          options:
+          - label: Enable intermission option
+            value: intermission_enable
+          - label: Disable intermission option
+            value: intermission_disable
+          multiple: false
+          custom_value: false
+    intermission_state:
+      name: Intermission - State
+      description: The selection cannot be the same as in the "Trigger - OFF State"
+        selections.
+      default: paused
+      selector:
+        select:
+          multiple: true
+          mode: list
+          options:
+          - label: Paused
+            value: paused
+          custom_value: false
+    intermission_light_switch:
+      name: Intermission - Lights - Switches - Scenes
+      description: 'The lights that get turned on by the trigger sensor/s. You can
+        also add switches and scenes. If adding a scene please read "Intermission
+        - Scenes To Turn OFF" below.
+
+        **NOTE** - You can only use entities. Areas and devices are not supported.'
+      default: {}
+      selector:
+        target:
+          entity:
+          - domain:
+            - light
+            - switch
+            - scene
+    intermission_end_scenes:
+      name: Intermission - Scenes To Turn OFF
+      description: If you have selected a scene to be turned ON above in "Intermission
+        - Lights - Switches - Scenes" and your lights are different from "Lights -
+        Switches - Scenes" above, then you will need to create another scene. The
+        scene should include the different  lights and the lights must be OFF. You
+        will then enter this scene here. If your lights are the same as "Intermission
+        - Lights - Switches - Scenes" then leave this blank.
+      default: []
+      selector:
+        entity:
+          multiple: true
+          domain:
+          - scene
+    intermission_include_light_control:
+      name: Intermission - Light Control Options (Optional)
+      description: Select any option you would like to use. It will only control a
+        "light" entity that supports each option you select. The settings are below
+        for each option.
+      default: []
+      selector:
+        select:
+          multiple: true
+          options:
+          - label: Use brightness
+            value: use_brightness
+          - label: Use colour temperature
+            value: use_colour_temperature
+          - label: Use transition
+            value: use_transition
+          custom_value: false
+    intermission_light_brightness:
+      name: Intermission - Brightness
+      description: The brightness setting for the lights when they are turned ON.
+      default: 100
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          mode: slider
+          step: 1.0
+          unit_of_measurement: '%'
+    intermission_light_colour_temperature:
+      name: Intermission - Colour Temperature
+      description: The colour temperature setting for the lights when they are turned
+        ON.
+      default: 5000
+      selector:
+        number:
+          min: 2000.0
+          max: 8000.0
+          mode: slider
+          step: 100.0
+          unit_of_measurement: kelvin
+    intermission_light_transition_on:
+      name: Intermission - Transition - ON
+      description: The transition setting for the lights when they are turned ON.
+      default: 1
+      selector:
+        number:
+          min: 0.0
+          max: 180.0
+          mode: slider
+          step: 5.0
+          unit_of_measurement: seconds
+    intermission_light_transition_off:
+      name: Intermission - Transition - OFF
+      description: The transition setting for the lights when they are turned OFF.
+      default: 1
+      selector:
+        number:
+          min: 0.0
+          max: 180.0
+          mode: slider
+          step: 5.0
+          unit_of_measurement: seconds
+    include_end_turn_on:
+      name: Use the End Turn ON Options (Optional)
+      description: 'The lights and switches to turn ON when the automation ends. You
+        can select to create a snapshot of your lights & switches so they will return
+        to the state they were in before this automation started. Or you can select
+        to turn ON lights - switches - scenes.
+
+        **Note** - If you chose to create a snapshot then you must enter a unique
+        snapshot name and create a toggle helper for this option to work. See below.'
+      default: disable_end_turn_on
+      selector:
+        select:
+          options:
+          - label: Enable to create a snapshot - Lights - Switches
+            value: enable_end_turn_on_snapshot
+          - label: Enable to turn ON - Lights - Switches - Scenes
+            value: enable_end_turn_on
+          - label: Disable, end turn ON options
+            value: disable_end_turn_on
+          multiple: false
+          custom_value: false
+    end_snapshot_name:
+      name: End Turn ON - Snapshot Name
+      description: 'If you have selected to create a snapshot of your lights and switches
+        above, then you must create a unique name for the snapshot. Every automation
+        your create using this blueprint with snapshots must have a unique name that
+        you create here.
+
+        **Note** - The name must all be in lower case and if you would like a space
+        then it must be "_". Example - "before" or "lights_before_movie"'
+      default: enter_unique_snapshot_name_here
+      selector:
+        text: {}
+    end_snapshot_helper:
+      name: End Turn ON - Snapshot Toggle Helper
+      description: If you have selected to create a snapshot of your lights and switches
+        above, then you must create a helper toggle and enter it here. The toggle
+        helper must be in the OFF state when the automation starts. How to create
+        a Snapshot Toggle Helper [Click Here](https://community.home-assistant.io/t/591824/15?u=blacky)
+      default: []
+      selector:
+        entity:
+          domain:
+          - input_boolean
+          multiple: false
+    end_light_switch:
+      name: End Turn ON - Lights - Switches - Scenes
+      description: 'Enter the lights, switches and or scenes you would like to turn
+        ON at the end of this automation. If you have selected above to create a snapshot
+        then enter the lights and switches you would like to create a snapshot for.
+        You can''t create a snapshot of a scene.
+
+        **NOTE** - You can only use entities. Areas and devices are not supported.'
+      default: {}
+      selector:
+        target:
+          entity:
+          - domain:
+            - light
+            - switch
+            - scene
+    end_include_light_control:
+      name: End Turn ON - Use The Light Control Options (Optional)
+      description: Select any option you would like to use. It will only control a
+        "light" entity that supports each option you select. The settings are below
+        for each option.
+      default: []
+      selector:
+        select:
+          multiple: true
+          options:
+          - label: Use brightness
+            value: use_brightness
+          - label: Use colour temperature
+            value: use_colour_temperature
+          - label: Use transition
+            value: use_transition
+          custom_value: false
+    end_light_brightness:
+      name: End Turn ON - Brightness
+      description: The brightness setting for the lights when they are turned ON.
+      default: 100
+      selector:
+        number:
+          min: 1.0
+          max: 100.0
+          mode: slider
+          step: 1.0
+          unit_of_measurement: '%'
+    end_light_colour_temperature:
+      name: End Turn ON - Colour Temperature
+      description: The colour temperature setting for the lights when they are turned
+        ON.
+      default: 5000
+      selector:
+        number:
+          min: 2000.0
+          max: 8000.0
+          mode: slider
+          step: 100.0
+          unit_of_measurement: kelvin
+    end_light_transition_on:
+      name: End Turn ON - Transition - ON
+      description: The transition setting for the lights when they are turned ON.
+      default: 1
+      selector:
+        number:
+          min: 0.0
+          max: 180.0
+          mode: slider
+          step: 5.0
+          unit_of_measurement: seconds
+    include_automation_link:
+      name: Use The Automation Link Option (Optional)
+      description: This allows you to link your other automations so they will be
+        automatically disabled. This is useful if you are using one of my other blueprints
+        to control the lights, switches and or scenes and you would like to disable
+        it when this automation is ON. For more information on the Automation Link
+        Option [Click Here](https://community.home-assistant.io/t/591824/4?u=blacky)
+      default: disable_automation_link
+      selector:
+        select:
+          options:
+          - label: Enable automation link
+            value: enable_automation_link
+          - label: Disable automation link
+            value: disable_automation_link
+          multiple: false
+          custom_value: false
+    automation_link:
+      name: Automation Link - By-pass Control
+      description: Enter the other automations you would like to disable when this
+        automation is ON. To do this your other automations must include a by-pass
+        switch that you enter here.
+      default: []
+      selector:
+        entity:
+          multiple: true
+          domain:
+          - input_boolean
+    include_sun:
+      name: Use The Sun Option (Optional)
+      description: This is used for adding a condition to only work when it is dark
+        or below the "Sun Elevation" setting. This sun option is a global condition
+        and can work alongside with the other options.
+      default: sun_disabled
+      selector:
+        select:
+          options:
+          - label: Enable the sun option
+            value: sun_enabled
+          - label: Disable the sun option
+            value: sun_disabled
+          multiple: false
+          custom_value: false
+    sun_elevation:
+      name: Sun Elevation
+      description: This is the angle between the sun and the horizon. A negative value
+        mean the sun is BELOW the horizon. Guide is -1.5 (dusk) and -4.0 (dawn).
+      default: -1.5
+      selector:
+        number:
+          min: -10.0
+          max: 5.0
+          step: 0.5
+          unit_of_measurement: degrees
+          mode: slider
+    include_ambient:
+      name: Use The Ambient Options (Optional)
+      description: This is used for adding a condition to only work when it is dark
+        or below the "Ambient Light LUX Value".
+      default: ambient_disabled
+      selector:
+        select:
+          options:
+          - label: Enable the ambient options
+            value: ambient_enabled
+          - label: Disable the ambient options
+            value: ambient_disabled
+          multiple: false
+          custom_value: false
+    ambient_light_sensor:
+      name: Ambient Light Sensor
+      description: Select the ambient sensor to be used.
+      default: []
+      selector:
+        entity:
+          domain:
+          - sensor
+          device_class:
+          - illuminance
+          multiple: false
+    ambient_light_options:
+      name: Ambient Light Sensor - Site Conditions
+      description: In some cases when your lights turn ON, your ambient light sensor
+        is affected, increasing its LUX value. This can cause the lights to go OFF
+        prematurely. Please select an option that best suits your installation.
+      default: ambient_light_option_disabled
+      selector:
+        select:
+          options:
+          - label: YES - My Ambient Light Sensor is affected by the Lights
+            value: ambient_light_option_enabled
+          - label: NO - My Ambient Light Sensor is not affected by the Lights
+            value: ambient_light_option_disabled
+          multiple: false
+          custom_value: false
+    ambient_light_value:
+      name: Ambient Light LUX Value
+      description: Set the Ambient Light LUX Value. Guide is 20 lux (dusk) and 80
+        lux (dawn).
+      default: 20
+      selector:
+        number:
+          min: 0.0
+          max: 500.0
+          step: 10.0
+          unit_of_measurement: LUX
+          mode: slider
+    include_bypass:
+      name: Use The Trigger By-pass Options (Optional)
+      description: Select enable or disable. The enable options are only for selecting
+        what should happen when you turn the by-pass ON.
+      default: bypass_disabled
+      selector:
+        select:
+          options:
+          - label: 1 - Enable the By-pass - Turn linked automation ON
+            value: bypass_enabled_linked_automations
+          - label: 2 - Enable the By-pass - Pause automation
+            value: bypass_enabled_pause_automation
+          - label: Disable the By-pass option
+            value: bypass_disabled
+          multiple: false
+          custom_value: false
+    trigger_bypass:
+      name: Trigger By-pass - Switch
+      description: Select a switch that will By-pass the Trigger and make your lights
+        function as normal. The entity cannot be included in, "Lights - Switches -
+        Scenes" and or "Intermission - Lights - Switches - Scenes" selections.
+      default: []
+      selector:
+        entity: {}
+  source_url: https://gist.github.com/Blackshome/85d6e7dbfa3390afbcf3e801b8be6294
+mode: restart
+max_exceeded: silent
+variables:
+  trigger_entities: !input trigger_entities
+  trigger_on_state: !input trigger_on_state
+  trigger_off_state: !input trigger_off_state
+  light_switch: !input light_switch
+  end_scenes: !input end_scenes
+  time_delay: !input time_delay
+  include_light_control: !input include_light_control
+  light_brightness: !input light_brightness
+  brightness_value: '{{ iif (''use_brightness'' in include_light_control , light_brightness,
+    ) }}'
+  light_colour_temperature: !input light_colour_temperature
+  temperature_value: '{{ iif (''use_colour_temperature'' in include_light_control
+    , light_colour_temperature, [] ) }}'
+  light_transition_on: !input light_transition_on
+  light_transition_off: !input light_transition_off
+  transition_on_value: '{{ iif (''use_transition'' in include_light_control, light_transition_on,
+    0 ) }}'
+  transition_off_value: '{{ iif (''use_transition'' in include_light_control, light_transition_off,
+    0 ) }}'
+  include_start_turn_off: !input include_start_turn_off
+  off_light_switch: !input off_light_switch
+  off_include_light_control: !input off_include_light_control
+  off_light_transition_off: !input off_light_transition_off
+  off_transition_off_value: '{{ iif (''use_transition'' in off_include_light_control,
+    off_light_transition_off, 0 ) }}'
+  include_intermission: !input include_intermission
+  intermission_state: !input intermission_state
+  intermission_light_switch: !input intermission_light_switch
+  intermission_end_scenes: !input intermission_end_scenes
+  intermission_include_light_control: !input intermission_include_light_control
+  intermission_light_brightness: !input intermission_light_brightness
+  intermission_brightness_value: '{{ iif (''use_brightness'' in intermission_include_light_control
+    , intermission_light_brightness, ) }}'
+  intermission_light_colour_temperature: !input intermission_light_colour_temperature
+  intermission_temperature_value: '{{ iif (''use_colour_temperature'' in intermission_include_light_control
+    , intermission_light_colour_temperature, [] ) }}'
+  intermission_light_transition_on: !input intermission_light_transition_on
+  intermission_light_transition_off: !input intermission_light_transition_off
+  intermission_transition_on_value: '{{ iif (''use_transition'' in intermission_include_light_control,
+    intermission_light_transition_on, 0 ) }}'
+  intermission_transition_off_value: '{{ iif (''use_transition'' in intermission_include_light_control,
+    intermission_light_transition_off, 0 ) }}'
+  include_end_turn_on: !input include_end_turn_on
+  end_snapshot_name: !input end_snapshot_name
+  end_snapshot_helper: !input end_snapshot_helper
+  end_light_switch: !input end_light_switch
+  end_include_light_control: !input end_include_light_control
+  end_light_brightness: !input end_light_brightness
+  end_brightness_value: '{{ iif (''use_brightness'' in end_include_light_control ,
+    end_light_brightness, ) }}'
+  end_light_colour_temperature: !input end_light_colour_temperature
+  end_temperature_value: '{{ iif (''use_colour_temperature'' in end_include_light_control
+    , end_light_colour_temperature, [] ) }}'
+  end_light_transition_on: !input end_light_transition_on
+  end_transition_on_value: '{{ iif (''use_transition'' in end_include_light_control,
+    end_light_transition_on, 0 ) }}'
+  include_automation_link: !input include_automation_link
+  automation_link: !input automation_link
+  include_sun: !input include_sun
+  sun_elevation: !input sun_elevation
+  include_ambient: !input include_ambient
+  ambient_light_sensor: !input ambient_light_sensor
+  ambient_light_options: !input ambient_light_options
+  ambient_light_value: !input ambient_light_value
+  include_bypass: !input include_bypass
+  trigger_bypass: !input trigger_bypass
+  light_entities_off: '{{ expand(light_switch.entity_id) | selectattr(''domain'',
+    ''eq'', ''light'') | selectattr(''state'', ''eq'', ''off'') | map(attribute=''entity_id'')
+    | list }}'
+  switch_entities_off: '{{ expand(light_switch.entity_id) | selectattr(''domain'',
+    ''eq'', ''switch'') | selectattr(''state'', ''eq'', ''off'') | map(attribute=''entity_id'')
+    | list }}'
+  light_entities: '{{ expand(light_switch.entity_id) | selectattr(''domain'', ''eq'',
+    ''light'') | map(attribute=''entity_id'') | list }}'
+  switch_entities: '{{ expand(light_switch.entity_id) | selectattr(''domain'', ''eq'',
+    ''switch'') | map(attribute=''entity_id'') | list }}'
+  scene_entities: '{{ expand(light_switch.entity_id) | selectattr(''domain'', ''eq'',
+    ''scene'') | map(attribute=''entity_id'') | list }}'
+  off_light_entities_on: "{% set a =  off_light_switch and off_light_switch.entity_id
+    %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'light') | selectattr('state',
+    'eq', 'on') | map(attribute='entity_id') | list }}\n{% else %}\n  []\n{% endif
+    %}"
+  off_switch_entities_on: "{% set a =  off_light_switch and off_light_switch.entity_id
+    %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'switch') | selectattr('state',
+    'eq', 'on') | map(attribute='entity_id') | list }}\n{% else %}\n  []\n{% endif
+    %}"
+  end_scene_create: "{% set a =  end_light_switch and end_light_switch.entity_id %}
+    {% if a %}\n  {{ expand(a) | map(attribute='entity_id') | list }}\n{% else %}\n
+    \ []\n{% endif %}"
+  end_light_entities: "{% set a =  end_light_switch and end_light_switch.entity_id
+    %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'light') | map(attribute='entity_id')
+    | list }}\n{% else %}\n  []\n{% endif %}"
+  end_switch_entities_off: "{% set a =  end_light_switch and end_light_switch.entity_id
+    %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'switch') | selectattr('state',
+    'eq', 'off') | map(attribute='entity_id') | list }}\n{% else %}\n  []\n{% endif
+    %}"
+  end_scene_entities: "{% set a =  end_light_switch and end_light_switch.entity_id
+    %} {% if a %}\n  {{ expand(a) | selectattr('domain', 'eq', 'scene') | map(attribute='entity_id')
+    | list }}\n{% else %}\n  []\n{% endif %}"
+  intermission_light_entities_off: "{% set a = light_switch.entity_id %} {% set b
+    =  intermission_light_switch and intermission_light_switch.entity_id %} {% if
+    a and b %}\n  {{ expand(b) | selectattr('domain', 'eq', 'light') | selectattr('state',
+    'eq', 'off') | map(attribute='entity_id') | list }}\n{% else %}\n  []\n{% endif
+    %}"
+  intermission_switch_entities_off: "{% set a = light_switch.entity_id %} {% set b
+    =  intermission_light_switch and intermission_light_switch.entity_id %} {% if
+    a and b %}\n  {{ expand(b) | selectattr('domain', 'eq', 'switch') | selectattr('state',
+    'eq', 'off') | map(attribute='entity_id') | list }}\n{% else %}\n  []\n{% endif
+    %}"
+  intermission_light_entities: "{% set a = light_switch.entity_id %} {% set b =  intermission_light_switch
+    and intermission_light_switch.entity_id %} {% if a and b %}\n  {{ expand(b) |
+    selectattr('domain', 'eq', 'light') | map(attribute='entity_id') | list }}\n{%
+    else %}\n  []\n{% endif %}"
+  intermission_switch_entities: "{% set a = light_switch.entity_id %} {% set b =  intermission_light_switch
+    and intermission_light_switch.entity_id %} {% if a and b %}\n  {{ expand(b) |
+    selectattr('domain', 'eq', 'switch') | map(attribute='entity_id') | list }}\n{%
+    else %}\n  []\n{% endif %}"
+  intermission_scene_entities: "{% set a = light_switch.entity_id %} {% set b =  intermission_light_switch
+    and intermission_light_switch.entity_id %} {% if a and b %}\n  {{ expand(b) |
+    selectattr('domain', 'eq', 'scene') | map(attribute='entity_id') | list }}\n{%
+    else %}\n  []\n{% endif %}"
+  crossover_light: "{% set a = light_switch.entity_id %} {% set b =  intermission_light_switch
+    and intermission_light_switch.entity_id %} {% if a and b %}\n  {{ expand(a) |
+    reject('in', expand(b)) | selectattr('domain', 'eq', 'light') | map(attribute='entity_id')
+    | list }}\n{% else %}\n  []\n{% endif %}"
+  crossover_switch: "{% set a = light_switch.entity_id %} {% set b =  intermission_light_switch
+    and intermission_light_switch.entity_id %} {% if a and b %}\n  {{ expand(a) |
+    reject('in', expand(b)) | selectattr('domain', 'eq', 'switch') | map(attribute='entity_id')
+    | list }}\n{% else %}\n  []\n{% endif %}"
+  crossover_intermission_light: "{% set a = light_switch.entity_id %} {% set b =  intermission_light_switch
+    and intermission_light_switch.entity_id %} {% if a and b %}\n  {{ expand(b) |
+    reject('in', expand(a)) | selectattr('domain', 'eq', 'light') | map(attribute='entity_id')
+    | list }}\n{% else %}\n  []\n{% endif %}"
+  crossover_intermission_switch: "{% set a = light_switch.entity_id %} {% set b =
+    \ intermission_light_switch and intermission_light_switch.entity_id %} {% if a
+    and b %}\n  {{ expand(b) | reject('in', expand(a)) | selectattr('domain', 'eq',
+    'switch') | map(attribute='entity_id') | list }}\n{% else %}\n  []\n{% endif %}"
+trigger:
+- platform: state
+  id: t0
+  entity_id: !input trigger_entities
+  to: !input trigger_on_state
+- platform: state
+  id: t1
+  entity_id: !input trigger_entities
+  to: !input intermission_state
+- platform: state
+  id: t2
+  entity_id: !input trigger_bypass
+  from: 'off'
+  to: 'on'
+- platform: state
+  id: t3
+  entity_id: !input trigger_bypass
+  from: 'on'
+  to: 'off'
+condition:
+- condition: or
+  conditions:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: !input trigger_entities
+      match: any
+      state: !input trigger_on_state
+    - condition: trigger
+      id: t0
+  - condition: and
+    conditions:
+    - condition: trigger
+      id: t1
+    - '{{ include_intermission == ''intermission_enable'' }}'
+  - condition: and
+    conditions:
+    - condition: trigger
+      id: t2
+    - '{{ (include_bypass == ''bypass_enabled_linked_automations'') or (include_bypass
+      == ''bypass_enabled_pause_automation'') }}'
+  - condition: and
+    conditions:
+    - condition: trigger
+      id: t3
+    - '{{ (include_bypass == ''bypass_enabled_linked_automations'') or (include_bypass
+      == ''bypass_enabled_pause_automation'') }}'
+- condition: or
+  conditions:
+  - '{{ include_bypass == ''bypass_disabled'' }}'
+  - '{{ trigger_bypass == [] }}'
+  - '{{ (include_bypass == ''bypass_enabled_linked_automations'') and (states[trigger_bypass].state
+    == ''off'') }}'
+  - '{{ (include_bypass == ''bypass_enabled_pause_automation'') and (states[trigger_bypass].state
+    == ''off'') }}'
+  - condition: trigger
+    id: t2
+- condition: or
+  conditions:
+  - '{{ include_sun == ''sun_disabled'' }}'
+  - '{{ (include_sun == ''sun_enabled'') and (state_attr(''sun.sun'',''elevation'')
+    <= sun_elevation | float(90)) }}'
+- condition: or
+  conditions:
+  - '{{ include_ambient == ''ambient_disabled'' }}'
+  - '{{ ambient_light_sensor == [] }}'
+  - '{{ (include_ambient == ''ambient_enabled'') and (states[ambient_light_sensor].state
+    | int < ambient_light_value | int) }}'
+  - '{{ (ambient_light_options == ''ambient_light_option_enabled'') and (expand(light_switch.entity_id)
+    | selectattr(''state'', ''=='', ''on'') | list | count > 0) }}'
+  - '{{ (ambient_light_options == ''ambient_light_option_enabled'') and ((include_intermission
+    == ''intermission_enabled'') and (expand(intermission_light_switch.entity_id)
+    | selectattr(''state'', ''=='', ''on'') | list | count > 0)) }}'
+action:
+- choose:
+  - alias: Check trigger intermission is enabled and preform the correct actions
+    conditions:
+    - condition: trigger
+      id: t1
+    sequence:
+    - alias: Wait the number of seconds set in the time delay
+      delay: !input time_delay
+    - alias: Turn off the lights
+      service: light.turn_off
+      target:
+        entity_id: '{{ crossover_light }}'
+      data:
+        transition: '{{ transition_off_value }}'
+    - alias: Turn off the switches
+      service: switch.turn_off
+      target:
+        entity_id: '{{ crossover_switch }}'
+    - alias: Turn off the scenes
+      service: scene.turn_on
+      entity_id: !input end_scenes
+      data:
+        transition: '{{ transition_off_value }}'
+    - choose:
+      - alias: Set the brightness and transition for the lights
+        conditions:
+        - condition: template
+          value_template: '{{ (''use_brightness'' in intermission_include_light_control)
+            and not (''use_colour_temperature'' in intermission_include_light_control)
+            }}'
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: '{{ intermission_light_entities }}'
+          data:
+            brightness_pct: '{{ intermission_brightness_value }}'
+            transition: '{{ intermission_transition_on_value }}'
+      - alias: Set the brightness, temperature and transition for the lights
+        conditions:
+        - condition: template
+          value_template: '{{ (''use_brightness'' in intermission_include_light_control)
+            and (''use_colour_temperature'' in intermission_include_light_control)
+            }}'
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: '{{ intermission_light_entities }}'
+          data:
+            brightness_pct: '{{ intermission_brightness_value }}'
+            kelvin: '{{ intermission_temperature_value }}'
+            transition: '{{ intermission_transition_on_value }}'
+      - alias: Set the temperature and transition for the lights
+        conditions:
+        - condition: template
+          value_template: '{{ (''use_colour_temperature'' in intermission_include_light_control)
+            and not (''use_brightness'' in intermission_include_light_control) }}'
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: '{{ intermission_light_entities }}'
+          data:
+            kelvin: '{{ intermission_temperature_value }}'
+            transition: '{{ intermission_transition_on_value }}'
+      - alias: Set the transition for the lights - Default
+        conditions:
+        - condition: template
+          value_template: '{{ (''use_brightness'' not in intermission_include_light_control)
+            and (''use_colour_temperature'' not in intermission_include_light_control)
+            }}'
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: '{{ intermission_light_entities_off }}'
+          data:
+            transition: '{{ intermission_transition_on_value }}'
+    - alias: Turn on the switches
+      service: switch.turn_on
+      target:
+        entity_id: '{{ intermission_switch_entities_off }}'
+    - alias: Turn on the scenes
+      service: scene.turn_on
+      target:
+        entity_id: '{{ intermission_scene_entities }}'
+      data:
+        transition: '{{ intermission_transition_on_value }}'
+    - alias: Wait until trigger is off
+      wait_for_trigger:
+        platform: state
+        entity_id: !input trigger_entities
+        to: !input trigger_off_state
+    - alias: Wait the number of seconds set in the time delay
+      delay: !input time_delay
+    - alias: Turn off the lights
+      service: light.turn_off
+      target:
+        entity_id: '{{ intermission_light_entities }}'
+      data:
+        transition: '{{ intermission_transition_off_value }}'
+    - alias: Turn off the switches
+      service: switch.turn_off
+      target:
+        entity_id: '{{ intermission_switch_entities }}'
+    - alias: Turn off the scenes
+      service: scene.turn_on
+      entity_id: !input intermission_end_scenes
+      data:
+        transition: '{{ intermission_transition_off_value }}'
+    - choose:
+      - alias: Check if end turn ON is enable & option Enable to create a snapshot
+          - Lights - Switches
+        conditions:
+        - condition: template
+          value_template: '{{ include_end_turn_on == ''enable_end_turn_on_snapshot''
+            }}'
+        - condition: state
+          entity_id: !input end_snapshot_helper
+          state: 'on'
+        sequence:
+        - alias: turn on the scene created
+          service: scene.turn_on
+          target:
+            entity_id: scene.{{end_snapshot_name }}
+        - alias: Turn on end snapshot helper
+          service: homeassistant.turn_off
+          entity_id: !input end_snapshot_helper
+      - alias: Check if end turn ON is enable & option Enable to turn ON - Lights
+          - Switches - Scenes
+        conditions:
+        - condition: template
+          value_template: '{{ include_end_turn_on == ''enable_end_turn_on'' }}'
+        sequence:
+        - choose:
+          - alias: Set the brightness and transition for the end lights
+            conditions:
+            - condition: template
+              value_template: '{{ (''use_brightness'' in end_include_light_control)
+                and not (''use_colour_temperature'' in end_include_light_control)
+                }}'
+            sequence:
+            - service: light.turn_on
+              target:
+                entity_id: '{{ end_light_entities }}'
+              data:
+                brightness_pct: '{{ end_brightness_value }}'
+                transition: '{{ end_transition_on_value }}'
+          - alias: Set the brightness, temperature and transition for the end lights
+            conditions:
+            - condition: template
+              value_template: '{{ (''use_brightness'' in end_include_light_control)
+                and (''use_colour_temperature'' in end_include_light_control) }}'
+            sequence:
+            - service: light.turn_on
+              target:
+                entity_id: '{{ end_light_entities }}'
+              data:
+                brightness_pct: '{{ end_brightness_value }}'
+                kelvin: '{{ end_temperature_value }}'
+                transition: '{{ end_transition_on_value }}'
+          - alias: Set the temperature and transition for the end lights
+            conditions:
+            - condition: template
+              value_template: '{{ (''use_colour_temperature'' in end_include_light_control)
+                and not (''use_brightness'' in end_include_light_control) }}'
+            sequence:
+            - service: light.turn_on
+              target:
+                entity_id: '{{ end_light_entities }}'
+              data:
+                kelvin: '{{ end_temperature_value }}'
+                transition: '{{ end_transition_on_value }}'
+          - alias: Set the transition for the end lights - Default
+            conditions:
+            - condition: template
+              value_template: '{{ (''use_brightness'' not in end_include_light_control)
+                and (''use_colour_temperature'' not in end_include_light_control)
+                }}'
+            sequence:
+            - service: light.turn_on
+              target:
+                entity_id: '{{ end_light_entities }}'
+              data:
+                transition: '{{ end_transition_on_value }}'
+        - alias: Turn on the end switches
+          service: switch.turn_on
+          target:
+            entity_id: '{{ end_switch_entities_off }}'
+        - alias: Turn on the end scenes
+          service: scene.turn_on
+          target:
+            entity_id: '{{ end_scene_entities }}'
+          data:
+            transition: '{{ end_transition_on_value }}'
+    - choose:
+      - alias: Check if automation link is enable
+        conditions:
+        - condition: template
+          value_template: '{{ include_automation_link == ''enable_automation_link''
+            }}'
+        - condition: state
+          entity_id: !input automation_link
+          match: any
+          state: 'on'
+        sequence:
+        - service: homeassistant.turn_off
+          entity_id: !input automation_link
+    - stop: Stop the automation
+  - alias: By-pass is turned on  & check by-pass option - bypass enabled linked automations
+    conditions:
+    - condition: trigger
+      id: t2
+    - '{{ (include_bypass == ''bypass_enabled_linked_automations'') }}'
+    sequence:
+    - service: homeassistant.turn_on
+      entity_id: !input automation_link
+    - stop: Stop the automation
+  - alias: By-pass is turned on  & check by-pass option - enabled pause automation
+    conditions:
+    - condition: trigger
+      id: t2
+    - '{{ (include_bypass == ''bypass_enabled_pause_automation'') }}'
+    sequence:
+    - stop: Stop the automation
+  - alias: By-pass is turned off  & check if the trigger is off
+    conditions:
+    - condition: trigger
+      id: t3
+    - condition: state
+      entity_id: !input trigger_entities
+      match: any
+      state: !input trigger_off_state
+    sequence:
+    - alias: Wait the number of seconds set in the time delay
+      delay: !input time_delay
+    - alias: Turn off the lights
+      service: light.turn_off
+      target:
+        entity_id: '{{ light_entities }}'
+      data:
+        transition: '{{ transition_off_value }}'
+    - alias: Turn off the switches
+      service: switch.turn_off
+      target:
+        entity_id: '{{ switch_entities }}'
+    - alias: Turn off the scenes
+      service: scene.turn_on
+      entity_id: !input end_scenes
+      data:
+        transition: '{{ transition_off_value }}'
+    - choose:
+      - alias: Check if automation link is enable
+        conditions:
+        - condition: template
+          value_template: '{{ include_automation_link == ''enable_automation_link''
+            }}'
+        sequence:
+        - service: homeassistant.turn_off
+          entity_id: !input automation_link
+    - stop: Stop the automation
+- choose:
+  - alias: Check end light switch, create a snapshot is enabled and create a snapshot
+      of the entities in end light switch
+    conditions:
+    - condition: template
+      value_template: '{{ include_end_turn_on == ''enable_end_turn_on_snapshot'' }}'
+    - condition: state
+      entity_id: !input end_snapshot_helper
+      state: 'off'
+    sequence:
+    - alias: Create a snapshot of end lights & switches
+      service: scene.create
+      data:
+        scene_id: !input end_snapshot_name
+        snapshot_entities: '{{ end_scene_create }}'
+    - alias: Turne on end snapshot helper
+      service: homeassistant.turn_on
+      entity_id: !input end_snapshot_helper
+- choose:
+  - alias: Check turn off lights & switches is enabled and turn off lights that are
+      on
+    conditions:
+    - condition: template
+      value_template: '{{ include_start_turn_off == ''enable_start_turn_off'' }}'
+    sequence:
+    - alias: Turn off the lights
+      service: light.turn_off
+      target:
+        entity_id: '{{ off_light_entities_on }}'
+      data:
+        transition: '{{ off_transition_off_value }}'
+    - alias: Turn off the switches
+      service: switch.turn_off
+      target:
+        entity_id: '{{ off_switch_entities_on }}'
+- choose:
+  - alias: Check trigger intermission is enabled and turn intermission lights off
+    conditions:
+    - condition: template
+      value_template: '{{ ''intermission_enable'' in include_intermission }}'
+    sequence:
+    - alias: Turn off the lights
+      service: light.turn_off
+      target:
+        entity_id: '{{ crossover_intermission_light }}'
+      data:
+        transition: '{{ intermission_transition_off_value }}'
+    - alias: Turn off the switches
+      service: switch.turn_off
+      target:
+        entity_id: '{{ crossover_intermission_switch }}'
+    - alias: Turn off the scenes
+      service: scene.turn_on
+      entity_id: !input intermission_end_scenes
+      data:
+        transition: '{{ intermission_transition_off_value }}'
+- choose:
+  - alias: Check if automation link is enable
+    conditions:
+    - condition: template
+      value_template: '{{ include_automation_link == ''enable_automation_link'' }}'
+    - condition: state
+      entity_id: !input automation_link
+      match: any
+      state: 'off'
+    sequence:
+    - service: homeassistant.turn_on
+      entity_id: !input automation_link
+    - alias: We need a delay for the automation link to work if different lights are
+        used and by-pass selection is OFF
+      delay: 0.1
+- choose:
+  - alias: Set the brightness and transition for the lights
+    conditions:
+    - condition: template
+      value_template: '{{ (''use_brightness'' in include_light_control) and not (''use_colour_temperature''
+        in include_light_control) }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ light_entities }}'
+      data:
+        brightness_pct: '{{ brightness_value }}'
+        transition: '{{ transition_on_value }}'
+  - alias: Set the brightness, temperature and transition for the lights
+    conditions:
+    - condition: template
+      value_template: '{{ (''use_brightness'' in include_light_control) and (''use_colour_temperature''
+        in include_light_control) }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ light_entities }}'
+      data:
+        brightness_pct: '{{ brightness_value }}'
+        kelvin: '{{ temperature_value }}'
+        transition: '{{ transition_on_value }}'
+  - alias: Set the temperature and transition for the lights
+    conditions:
+    - condition: template
+      value_template: '{{ (''use_colour_temperature'' in include_light_control) and
+        not (''use_brightness'' in include_light_control) }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ light_entities }}'
+      data:
+        kelvin: '{{ temperature_value }}'
+        transition: '{{ transition_on_value }}'
+  - alias: Set the transition for the lights - Default
+    conditions:
+    - condition: template
+      value_template: '{{ (''use_brightness'' not in include_light_control) and (''use_colour_temperature''
+        not in include_light_control) }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ light_entities }}'
+      data:
+        transition: '{{ transition_on_value }}'
+- alias: Turn on the switches
+  service: switch.turn_on
+  target:
+    entity_id: '{{ switch_entities_off }}'
+- alias: Turn on the scenes
+  service: scene.turn_on
+  target:
+    entity_id: '{{ scene_entities }}'
+  data:
+    transition: '{{ transition_on_value }}'
+- alias: Wait until trigger is off
+  wait_for_trigger:
+    platform: state
+    entity_id: !input trigger_entities
+    to: !input trigger_off_state
+- alias: Wait the number of seconds set in the time delay
+  delay: !input time_delay
+- alias: Turn off the lights
+  service: light.turn_off
+  target:
+    entity_id: '{{ light_entities }}'
+  data:
+    transition: '{{ transition_off_value }}'
+- alias: Turn off the switches
+  service: switch.turn_off
+  target:
+    entity_id: '{{ switch_entities }}'
+- alias: Turn off the scenes
+  service: scene.turn_on
+  entity_id: !input end_scenes
+  data:
+    transition: '{{ transition_off_value }}'
+- choose:
+  - alias: Check if end turn ON is enable & option Enable to create a snapshot - Lights
+      - Switches
+    conditions:
+    - condition: template
+      value_template: '{{ include_end_turn_on == ''enable_end_turn_on_snapshot'' }}'
+    - condition: state
+      entity_id: !input end_snapshot_helper
+      state: 'on'
+    sequence:
+    - alias: turn on the scene created
+      service: scene.turn_on
+      target:
+        entity_id: scene.{{end_snapshot_name }}
+    - alias: Turn on end snapshot helper
+      service: homeassistant.turn_off
+      entity_id: !input end_snapshot_helper
+  - alias: Check if end turn ON is enable & option Enable to turn ON - Lights - Switches
+      - Scenes
+    conditions:
+    - condition: template
+      value_template: '{{ include_end_turn_on == ''enable_end_turn_on'' }}'
+    sequence:
+    - choose:
+      - alias: Set the brightness and transition for the end lights
+        conditions:
+        - condition: template
+          value_template: '{{ (''use_brightness'' in end_include_light_control) and
+            not (''use_colour_temperature'' in end_include_light_control) }}'
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: '{{ end_light_entities }}'
+          data:
+            brightness_pct: '{{ end_brightness_value }}'
+            transition: '{{ end_transition_on_value }}'
+      - alias: Set the brightness, temperature and transition for the end lights
+        conditions:
+        - condition: template
+          value_template: '{{ (''use_brightness'' in end_include_light_control) and
+            (''use_colour_temperature'' in end_include_light_control) }}'
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: '{{ end_light_entities }}'
+          data:
+            brightness_pct: '{{ end_brightness_value }}'
+            kelvin: '{{ end_temperature_value }}'
+            transition: '{{ end_transition_on_value }}'
+      - alias: Set the temperature and transition for the end lights
+        conditions:
+        - condition: template
+          value_template: '{{ (''use_colour_temperature'' in end_include_light_control)
+            and not (''use_brightness'' in end_include_light_control) }}'
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: '{{ end_light_entities }}'
+          data:
+            kelvin: '{{ end_temperature_value }}'
+            transition: '{{ end_transition_on_value }}'
+      - alias: Set the transition for the end lights - Default
+        conditions:
+        - condition: template
+          value_template: '{{ (''use_brightness'' not in end_include_light_control)
+            and (''use_colour_temperature'' not in end_include_light_control) }}'
+        sequence:
+        - service: light.turn_on
+          target:
+            entity_id: '{{ end_light_entities }}'
+          data:
+            transition: '{{ end_transition_on_value }}'
+    - alias: Turn on the end switches
+      service: switch.turn_on
+      target:
+        entity_id: '{{ end_switch_entities_off }}'
+    - alias: Turn on the end scenes
+      service: scene.turn_on
+      target:
+        entity_id: '{{ end_scene_entities }}'
+      data:
+        transition: '{{ end_transition_on_value }}'
+- choose:
+  - alias: Check if automation link is enable
+    conditions:
+    - condition: template
+      value_template: '{{ include_automation_link == ''enable_automation_link'' }}'
+    - condition: state
+      entity_id: !input automation_link
+      match: any
+      state: 'on'
+    sequence:
+    - service: homeassistant.turn_off
+      entity_id: !input automation_link

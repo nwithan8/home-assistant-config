@@ -1,0 +1,413 @@
+blueprint:
+  name: HASPone p[x].b[y] displays the month + date with a calendar icon
+  description: '
+
+    ## Blueprint Version: `1.05.00`
+
+
+    # Description
+
+
+    A HASPone button displays month + date on the right with a calendar icon on the
+    left.
+
+
+    ![Preview](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/hasp_Display_Calendar_with_Icon.png)
+
+
+    ## HASPone Page and Button Reference
+
+
+    <details>
+
+
+    This automation is designed to work with the full-width buttons found on pages
+    1-3
+
+
+    | Pages 1-3 |
+
+    |-----------|
+
+    | ![Pages 1-3](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p1-p3_4buttons.png)
+    |
+
+
+    </details>
+
+
+    ## Nextion color codes
+
+
+    <details>
+
+
+    The Nextion environment utilizes RGB 565 encoding.  [Use this handy convertor](https://nodtem66.github.io/nextion-hmi-color-convert/index.html)
+    to select your colors and convert to the RGB 565 format.
+
+
+    Here are some example colors:
+
+
+    | Color  | Code  |
+
+    |--------|-------|
+
+    | White  | 65535 |
+
+    | Black  | 0     |
+
+    | Grey   | 25388 |
+
+    | Red    | 63488 |
+
+    | Green  | 2016  |
+
+    | Blue   | 31    |
+
+    | Yellow | 65504 |
+
+    | Orange | 64512 |
+
+    | Brown  | 48192 |
+
+
+    </details>
+
+    '
+  domain: automation
+  input:
+    haspdevice:
+      name: HASPone Device
+      description: Select the HASPone device
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: HASwitchPlate
+          model: HASPone v1.0.0
+          multiple: false
+    hasppage:
+      name: HASPone Page
+      description: Select the HASPone page (1-3) for the calendar. Refer to the HASPone
+        Page and Button reference above.
+      default: 1
+      selector:
+        number:
+          min: 1.0
+          max: 3.0
+          mode: slider
+          unit_of_measurement: page
+          step: 1.0
+    haspbutton:
+      name: HASPone Button
+      description: Select the HASPone button (4-7) for the calendar. Refer to the
+        HASPone Page and Button reference above.
+      default: 4
+      selector:
+        number:
+          min: 4.0
+          max: 7.0
+          mode: slider
+          unit_of_measurement: button
+          step: 1.0
+    selected_fgcolor:
+      name: Selected foreground color
+      description: Selected foreground color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme selected foreground
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    selected_bgcolor:
+      name: Selected background color
+      description: Selected background color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme selected background
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    unselected_fgcolor:
+      name: Unselected foreground color
+      description: Unselected foreground color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme unselected foreground
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    unselected_bgcolor:
+      name: Unselected background color
+      description: Unselected background color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme unselected background
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    icon_fgcolor:
+      name: Icon foreground color
+      description: Icon foreground color in Nextion RGB565 format (see "Nextion color
+        codes" above for reference). -1 = Current theme selected foreground color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+  source_url: https://github.com/HASwitchPlate/HASPone/blob/main/Home_Assistant/blueprints/hasp_Display_Calendar_with_Icon.yaml
+mode: parallel
+max_exceeded: silent
+variables:
+  haspdevice: !input haspdevice
+  haspname: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{- entity|regex_replace(find=\"^sensor\\.\", replace=\"\", ignorecase=true)|regex_replace(find=\"_sensor(?:_\\d+|)$\",
+    replace=\"\", ignorecase=true) -}}\n  {%- endif -%}\n{%- endfor -%}"
+  hasppage: !input hasppage
+  haspbutton: !input haspbutton
+  selected_fgcolor: !input selected_fgcolor
+  selected_bgcolor: !input selected_bgcolor
+  unselected_fgcolor: !input unselected_fgcolor
+  unselected_bgcolor: !input unselected_bgcolor
+  icon_fgcolor: !input icon_fgcolor
+  haspobject: '{{ "p[" ~ hasppage ~ "].b[" ~ haspbutton ~ "]" }}'
+  commandtopic: '{{ "hasp/" ~ haspname ~ "/command/" ~ haspobject }}'
+  jsontopic: '{{ "hasp/" ~ haspname ~ "/state/json" }}'
+  jsoncommandtopic: '{{ "hasp/" ~ haspname ~ "/command/json" }}'
+  activepage: "{%- set activepage = namespace() -%} {%- for entity in device_entities(haspdevice)
+    -%}\n  {%- if entity|regex_search(\"^number\\..*_active_page(?:_\\d+|)$\") -%}\n
+    \   {%- set activepage.entity=entity -%}\n  {%- endif -%}\n{%- endfor -%} {{ states(activepage.entity)
+    | int(default=-1) }}"
+  selectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedforegroundcolor/rgb" }}'
+  selectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedbackgroundcolor/rgb" }}'
+  unselectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedforegroundcolor/rgb"
+    }}'
+  unselectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedbackgroundcolor/rgb"
+    }}'
+  selectedfg: "{%- if (selected_fgcolor|int) >= 0 -%}\n  {{ selected_fgcolor }}\n{%-
+    else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_selected_foreground_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  selectedbg: "{%- if (selected_bgcolor|int) >= 0 -%}\n  {{ selected_bgcolor }}\n{%-
+    else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_selected_background_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  unselectedfg: "{%- if (unselected_fgcolor|int) >= 0 -%}\n  {{ unselected_fgcolor
+    }}\n{%- else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_unselected_foreground_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  unselectedbg: "{%- if (unselected_bgcolor|int) >= 0 -%}\n  {{ unselected_bgcolor
+    }}\n{%- else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_unselected_background_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  iconcolor: "{%- if (icon_fgcolor|int) >= 0 -%}\n  {{ icon_fgcolor }}\n{%- else -%}\n
+    \ {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_selected_foreground_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  text: '{{(now().strftime("%b "))~now().day}}'
+  font: 8
+  ypos: '{{(haspbutton|int - 4) * 67 + 2}}'
+  xpos: 0
+  icon: 
+  iconwidth: 50
+  iconheight: 65
+  iconfont: 8
+trigger_variables:
+  haspdevice: !input haspdevice
+  haspname: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{- entity|regex_replace(find=\"^sensor\\.\", replace=\"\", ignorecase=true)|regex_replace(find=\"_sensor(?:_\\d+|)$\",
+    replace=\"\", ignorecase=true) -}}\n  {%- endif -%}\n{%- endfor -%}"
+  haspsensor: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{ entity }}\n  {%- endif -%}\n{%- endfor -%}"
+  jsontopic: '{{ "hasp/" ~ haspname ~ "/state/json" }}'
+  selectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedforegroundcolor/rgb" }}'
+  selectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedbackgroundcolor/rgb" }}'
+  unselectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedforegroundcolor/rgb"
+    }}'
+  unselectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedbackgroundcolor/rgb"
+    }}'
+trigger:
+- platform: time
+  at: 00:00:00
+- platform: homeassistant
+  event: start
+- platform: template
+  value_template: '{{ is_state(haspsensor, ''ON'') }}'
+- platform: mqtt
+  topic: '{{jsontopic}}'
+- platform: mqtt
+  topic: '{{selectedfgtopic}}'
+- platform: mqtt
+  topic: '{{selectedbgtopic}}'
+- platform: mqtt
+  topic: '{{unselectedfgtopic}}'
+- platform: mqtt
+  topic: '{{unselectedbgtopic}}'
+condition:
+- condition: template
+  value_template: '{{ is_state(haspsensor, ''ON'') }}'
+action:
+- choose:
+  - conditions:
+    - condition: template
+      value_template: "{{-\n  (trigger is not defined)\nor\n  (trigger.platform is
+        none)\nor\n  ((trigger.platform == 'homeassistant') and (trigger.event ==
+        'start'))\nor\n  ((trigger.platform == 'template') and (trigger.entity_id
+        == haspsensor) and (trigger.to_state.state == 'ON'))\n-}}"
+    sequence:
+    - service: mqtt.publish
+      data:
+        topic: '{{jsoncommandtopic}}'
+        payload: '["{{haspobject}}.font={{font}}", "{{haspobject}}.xcen=2", "{{haspobject}}.ycen=1",
+          "{{haspobject}}.pco={{selectedfg}}", "{{haspobject}}.bco={{selectedbg}}",
+          "{{haspobject}}.pco2={{unselectedfg}}", "{{haspobject}}.bco2={{unselectedbg}}",
+          "{{haspobject}}.txt=\"{{text}} \"" {%- if activepage|int == hasppage|int
+          -%} ,"delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{iconcolor}},0,1,1,3,\"{{icon}}\""
+          {%- endif -%}]'
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.platform == "time" }}'
+    sequence:
+    - service: mqtt.publish
+      data:
+        topic: '{{jsoncommandtopic}}'
+        payload: '["{{haspobject}}.txt=\"{{text}} \"" {%- if activepage|int == hasppage|int
+          -%} ,"delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{iconcolor}},0,1,1,3,\"{{icon}}\""
+          {%- endif -%}]'
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.platform == "mqtt" }}'
+    sequence:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == jsontopic) and trigger.payload_json
+            is defined }}'
+        sequence:
+        - choose:
+          - conditions:
+            - condition: template
+              value_template: '{{ (trigger.topic == jsontopic ) and (trigger.payload_json.event
+                == haspobject ) and (trigger.payload_json.value == "OFF") }}'
+            sequence:
+            - service: mqtt.publish
+              data:
+                topic: '{{jsoncommandtopic}}'
+                payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{iconcolor}},0,1,1,3,\"{{icon}}\""]'
+          - conditions:
+            - condition: template
+              value_template: '{{ (trigger.topic == jsontopic ) and (trigger.payload_json.event
+                == "page" ) and (trigger.payload_json.value == hasppage|int) }}'
+            sequence:
+            - service: mqtt.publish
+              data:
+                topic: '{{jsoncommandtopic}}'
+                payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{iconcolor}},0,1,1,3,\"{{icon}}\""]'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == selectedfgtopic) and ((selected_fgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.pco'
+            payload: '{{trigger.payload}}'
+        - condition: template
+          value_template: '{{ activepage|int == hasppage|int }}'
+        - delay: '00:00:00.5'
+        - service: mqtt.publish
+          data:
+            topic: '{{jsoncommandtopic}}'
+            payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{iconcolor}},0,1,1,3,\"{{icon}}\""]'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == selectedbgtopic) and ((selected_bgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.bco'
+            payload: '{{trigger.payload}}'
+        - condition: template
+          value_template: '{{ activepage|int == hasppage|int }}'
+        - delay: '00:00:00.5'
+        - service: mqtt.publish
+          data:
+            topic: '{{jsoncommandtopic}}'
+            payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{iconcolor}},0,1,1,3,\"{{icon}}\""]'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == unselectedfgtopic) and ((unselected_fgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.pco2'
+            payload: '{{trigger.payload}}'
+        - condition: template
+          value_template: '{{ activepage|int == hasppage|int }}'
+        - delay: '00:00:00.5'
+        - service: mqtt.publish
+          data:
+            topic: '{{jsoncommandtopic}}'
+            payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{iconcolor}},0,1,1,3,\"{{icon}}\""]'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == unselectedbgtopic) and ((unselected_bgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.bco2'
+            payload: '{{trigger.payload}}'
+        - condition: template
+          value_template: '{{ activepage|int == hasppage|int }}'
+        - delay: '00:00:00.5'
+        - service: mqtt.publish
+          data:
+            topic: '{{jsoncommandtopic}}'
+            payload: '["delay=1","xstr {{xpos}},{{ypos}},{{iconwidth}},{{iconheight}},{{iconfont}},{{iconcolor}},0,1,1,3,\"{{icon}}\""]'
