@@ -1,150 +1,152 @@
 - sensor:
-  - name: "Everyone Home"
-    state: >
-          {{ is_state('person.nate', 'home') and is_state('person.lexi', 'home') }}
-          
-  - name: "Anyone Home"
-    state: >
-          {{ is_state('person.nate', 'home') or is_state('person.lexi', 'home') }}
-          
-  - name: "No One Home"
-    state: >
-          {{ is_state('person.nate', 'away') and is_state('person.lexi', 'away') }}
-          
-  - name: "Locks Unlocked Count"
-    state: >
+    - name: "Everyone Home"
+      state: >
+        {{ is_state('person.nate', 'home') and is_state('person.lexi', 'home') }}
+
+    - name: "Anyone Home"
+      state: >
+        {{ is_state('person.nate', 'home') or is_state('person.lexi', 'home') }}
+
+    - name: "No One Home"
+      state: >
+        {{ is_state('person.nate', 'away') and is_state('person.lexi', 'away') }}
+
+    - name: "People Home Count"
+      state: >
+        {{ states.person | selectattr('state', 'eq', 'home') | list | count }}
+
+    - name: "People Not Home Count"
+      state: >
+        {{ states.person | selectattr('state', 'eq', 'not_home') | list | count }}
+
+    - name: "Locks Unlocked Count"
+      state: >
         {{ states.lock | selectattr('state', 'eq', 'unlocked') | list | count }}
-        
-  - name: "Locks Unlocked"
-    state: >
-      {{ states('sensor.locks_unlocked_count') > '0' }}
-        
-  - name: "Locks Locked Count"
-    state: >
+
+    - name: "Locks Unlocked"
+      state: >
+        {{ states('sensor.locks_unlocked_count') > '0' }}
+
+    - name: "Locks Locked Count"
+      state: >
         {{ states.lock | selectattr('state', 'eq', 'locked') | list | count }}
-        
-  - name: "Locks Locked"
-    state: >
-      {{ states('sensor.locks_locked_count') > '0' }}
-        
-  - name: "Lights On Count"
-    state: >
+
+    - name: "Locks Locked"
+      state: >
+        {{ states('sensor.locks_locked_count') > '0' }}
+
+    - name: "Lights On Count"
+      state: >
         {{ states.light | selectattr('state', 'eq', 'on') | list | count }}
-        
-  - name: "Lights On"
-    state: >
-      {{ states('sensor.lights_on_count') > '0' }}
-        
-  - name: "Lights Off Count"
-    state: >
+
+    - name: "Lights On"
+      state: >
+        {{ states('sensor.lights_on_count') > '0' }}
+
+    - name: "Lights Off Count"
+      state: >
         {{ states.light | selectattr('state', 'eq', 'off') | list | count }}
 
-  - name: "Lights Off"
-    state: >
-      {{ states('sensor.lights_off_count') > '0' }}
-      
-  - name: "Fans On Count"
-    state: >
+    - name: "Lights Off"
+      state: >
+        {{ states('sensor.lights_off_count') > '0' }}
+
+    - name: "Fans On Count"
+      state: >
         {{ states.fan | selectattr('state', 'eq', 'on') | list | count }}
-        
-  - name: "Fans On"
-    state: >
-      {{ states('sensor.fans_on_count') > '0' }}
-        
-  - name: "Fans Off Count"
-    state: >
+
+    - name: "Fans On"
+      state: >
+        {{ states('sensor.fans_on_count') > '0' }}
+
+    - name: "Fans Off Count"
+      state: >
         {{ states.fan | selectattr('state', 'eq', 'off') | list | count }}
 
-  - name: "Fans Off"
-    state: >
-      {{ states('sensor.fans_off_count') > '0' }}
-      
-  - name: "Covers Open Count"
-    state: >
+    - name: "Fans Off"
+      state: >
+        {{ states('sensor.fans_off_count') > '0' }}
+
+    - name: "Covers Open Count"
+      state: >
         {{ states.cover | selectattr('state', 'eq', 'open') | list | count }}
-        
-  - name: "Covers Open"
-    state: >
-      {{ states('sensor.covers_open_count') > '0' }}
-        
-  - name: "Covers Closed Count"
-    state: >
+
+    - name: "Covers Open"
+      state: >
+        {{ states('sensor.covers_open_count') > '0' }}
+
+    - name: "Covers Closed Count"
+      state: >
         {{ states.cover | selectattr('state', 'eq', 'closed') | list | count }}
 
-  - name: "Covers Closed"
-    state: >
-      {{ states('sensor.cover_closed_count') > '0' }}
-      
-  - name: "Switches On Count"
-    state: >
+    - name: "Covers Closed"
+      state: >
+        {{ states('sensor.cover_closed_count') > '0' }}
+
+    - name: "Switches On Count"
+      state: >
         {{ states.switch | selectattr('state', 'eq', 'on') | list | count }}
-        
-  - name: "Switches On"
-    state: >
-      {{ states('sensor.switches_on_count') > '0' }}
-        
-  - name: "Switches Off Count"
-    state: >
+
+    - name: "Switches On"
+      state: >
+        {{ states('sensor.switches_on_count') > '0' }}
+
+    - name: "Switches Off Count"
+      state: >
         {{ states.switch | selectattr('state', 'eq', 'off') | list | count }}
 
-  - name: "Switches Off"
-    state: >
-      {{ states('sensor.switches_off_count') > '0' }}
-      
+    - name: "Switches Off"
+      state: >
+        {{ states('sensor.switches_off_count') > '0' }}
 
-
-
-
-
-      
 - binary_sensor:
     - name: Living Room Summary
       <<: &area_info
-          state: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'light' ) | selectattr ( 'state' , 'eq' , 'on' ) | list | count > 0 }}"
-          attributes:
-            lights_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'light' ) | list | count }}"
-            lights_on: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'light' ) | selectattr ( 'state' , 'eq' , 'on' ) | list | count }}"
-            lights_off: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'light' ) | selectattr ( 'state' , 'eq' , 'off' ) | list | count }}"
-            covers_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'cover' ) | list | count }}"
-            covers_open: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'cover' ) | selectattr ( 'state' , 'eq' , 'open' ) | list | count }}"
-            covers_closed: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'cover' ) | selectattr ( 'state' , 'eq' , 'closed' ) | list | count }}"
-            fans_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'fan' ) | list | count }}"
-            fans_on: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'fan' ) | selectattr ( 'state' , 'eq' , 'on' ) | list | count }}"
-            fans_off: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'fan' ) | selectattr ( 'state' , 'eq' , 'off' ) | list | count }}"
-            switches_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'switch' ) | list | count }}"
-            switches_on: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'switch' ) | selectattr ( 'state' , 'eq' , 'on' ) | list | count }}"
-            switches_off: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'switch' ) | selectattr ( 'state' , 'eq' , 'off' ) | list | count }}"
-            locks_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'lock' ) | list | count }}"
-            locks_locked: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'lock' ) | selectattr ( 'state' , 'eq' , 'locked' ) | list | count }}"
-            locks_unlocked: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'lock' ) | selectattr ( 'state' , 'eq' , 'unlocked' ) | list | count }}"
-    
+        state: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'light' ) | selectattr ( 'state' , 'eq' , 'on' ) | list | count > 0 }}"
+        attributes:
+          lights_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'light' ) | list | count }}"
+          lights_on: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'light' ) | selectattr ( 'state' , 'eq' , 'on' ) | list | count }}"
+          lights_off: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'light' ) | selectattr ( 'state' , 'eq' , 'off' ) | list | count }}"
+          covers_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'cover' ) | list | count }}"
+          covers_open: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'cover' ) | selectattr ( 'state' , 'eq' , 'open' ) | list | count }}"
+          covers_closed: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'cover' ) | selectattr ( 'state' , 'eq' , 'closed' ) | list | count }}"
+          fans_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'fan' ) | list | count }}"
+          fans_on: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'fan' ) | selectattr ( 'state' , 'eq' , 'on' ) | list | count }}"
+          fans_off: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'fan' ) | selectattr ( 'state' , 'eq' , 'off' ) | list | count }}"
+          switches_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'switch' ) | list | count }}"
+          switches_on: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'switch' ) | selectattr ( 'state' , 'eq' , 'on' ) | list | count }}"
+          switches_off: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'switch' ) | selectattr ( 'state' , 'eq' , 'off' ) | list | count }}"
+          locks_count: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'lock' ) | list | count }}"
+          locks_locked: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'lock' ) | selectattr ( 'state' , 'eq' , 'locked' ) | list | count }}"
+          locks_unlocked: "{{ expand(area_entities(this.name[:-7])) | selectattr ( 'domain' , 'eq' , 'lock' ) | selectattr ( 'state' , 'eq' , 'unlocked' ) | list | count }}"
+
     - name: Kitchen Summary
       <<: *area_info
-        
+
     - name: Dining Room Summary
       <<: *area_info
-        
+
     - name: Master Bedroom Summary
       <<: *area_info
-        
+
     - name: Master Closet Summary
       <<: *area_info
-      
+
     - name: Guest Bedroom Summary
       <<: *area_info
-      
+
     - name: Office Summary
       <<: *area_info
-      
+
     - name: Garage Summary
       <<: *area_info
-      
+
     - name: Laundry Room Summary
       <<: *area_info
-      
+
     - name: Lower Porch Summary
       <<: *area_info
-      
+
     - name: Upper Porch Summary
       <<: *area_info
 

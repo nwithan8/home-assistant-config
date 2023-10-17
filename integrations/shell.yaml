@@ -1,2 +1,4 @@
 shell_command:
   ntfy_send: 'bash /config/shell/ntfy_send.sh -s "{{ server }}" -t "{{ topic }}" -m "{{ message }}" -h "{{ headers }}" -a "{{ auth }}"'
+  tidbyt_display: 'curl -X POST -F "device_id={{ device_id }}" -F "api_key={{ api_key }}" -F "file=@/config/pixlet_files/{{ file }}.star" http://localhost:5300/push'
+  restart_plex_appbox: "bash /config/shell/restart_plex_appbox.sh"

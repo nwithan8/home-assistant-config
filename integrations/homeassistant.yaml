@@ -7,3 +7,7 @@
 homeassistant:
   # Lets me customize individual entities
   customize: !include_dir_named ../customizations/entities
+  # Allow external access to images
+  allowlist_external_dirs:
+    - "/config/www/snapshots"
+    - "/tmp"

@@ -1,0 +1,9 @@
+rest_command:
+  tvoverlay:
+    url: !secret tv_overlay_bedroom_chromecast_set_overlay
+    method: POST
+    verify_ssl: false
+    headers:
+      accept: "application/json"
+    content_type: "application/json; charset=utf-8"
+    payload: "{{ payload }}"

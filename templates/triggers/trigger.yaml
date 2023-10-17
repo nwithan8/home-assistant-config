@@ -1,8 +1,64 @@
-- trigger: 
-      - platform: state
-        entity_id: cover.garage_door
-        from: cover.close_cover
-        to: cover.open_cover
+# Note when the garage door was last opened
+- trigger:
+    - platform: state
+      entity_id: cover.garage_door
+      from: cover.close_cover
+      to: cover.open_cover
   sensor:
-      - name: Garage Door Last Opened
-        state:  "{{ now() }}"
+    - name: Garage Door Last Opened
+      state: "{{ now() }}"
+
+# Update hourly weather
+- trigger:
+    - platform: time_pattern
+      minutes: "3"
+      seconds: "12"
+  action:
+    - service: weather.get_forecast
+      data:
+        type: hourly
+      target:
+        entity_id: weather.kbjc_hourly
+      response_variable: forecast
+    - service: script.1696374658541
+      data:
+        temperature: "{{ forecast.forecast[0].temperature }}"
+        humidity: "{{ forecast.forecast[0].humidity }}"
+      response_variable: heat_index
+  sensor:
+    - name: Current weather precipitation probability
+      state: "{{ forecast.forecast[0].precipitation_probability }}"
+    - name: Current weather hourly forecast
+      state: "{{ forecast.forecast[0].condition }}"
+    - name: Current weather temperature
+      state: "{{ forecast.forecast[0].temperature }}"
+    - name: Current weather dew point
+      state: "{{ forecast.forecast[0].dew_point }}"
+    - name: Current weather wind bearing
+      state: "{{ forecast.forecast[0].wind_bearing }}"
+    - name: Current weather wind speed
+      state: "{{ forecast.forecast[0].wind_speed }}"
+    - name: Current weather humidity
+      state: "{{ forecast.forecast[0].humidity }}"
+    - name: Current weather description
+      state: "{{ forecast.forecast[0].detailed_description }}"
+    - name: Current heat index
+      state: "{{ heat_index.heat_index }}"
+
+# Update daily weather summary
+- trigger:
+    - platform: time_pattern
+      minutes: "3"
+      seconds: "12"
+  action:
+    - service: weather.get_forecast
+      data:
+        type: twice_daily
+      target:
+        entity_id: weather.kbjc_daynight
+      response_variable: forecast
+  sensor:
+    - name: Current weather description
+      state: "{{ forecast.forecast[0].detailed_description }}"
+
+    
