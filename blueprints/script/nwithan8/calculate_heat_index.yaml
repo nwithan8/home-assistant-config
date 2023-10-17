@@ -1,0 +1,68 @@
+blueprint:
+  name: Calculate Heat Index
+  description: >-
+    A script that calculates heat index based on the National Weather Service's formula.
+  domain: script
+
+fields:
+  temperature:
+    description: The temperature
+    name: Temperature
+    required: true
+    selector:
+      number:
+        min: -150
+        max: 150
+        unit_of_measurement: "F"
+  humidity:
+    description: The humidity
+    name: Humidity
+    required: true
+    selector:
+      number:
+        min: 0
+        max: 200
+        unit_of_measurement: "%"
+
+variables:
+  heat_index: >
+    {% set T = temperature %}
+    {% set RH = humidity %}
+
+    {% set c1 = -42.379 %}
+    {% set c2 = 2.04901523 %}
+    {% set c3 = 10.14333127 %}
+    {% set c4 = -0.22475541 %}
+    {% set c5 = -6.83783e-03 %}
+    {% set c6 = -5.481717e-02 %}
+    {% set c7 = 1.22874e-03 %}
+    {% set c8 = 8.5282e-04 %}
+    {% set c9 = -1.99e-06 %}
+
+    {% set HI = 0.5 * (T + 61.0 + ((T - 68.0) * 1.2) + (RH * 0.094)) %}
+
+    {% if T < 80 or RH < 40 or HI < 80 %}
+      {% set HI = HI %}
+    {% else %}    
+      {% set HI = c1 + (c2 * T) + (c3 * RH) + (c4 * T * RH) + (c5 * T**2) + (c6 * RH**2) + (c7 * T**2 * RH) + (c8 * T * RH**2) + (c9 * T**2 * RH**2) %}
+
+      {% if RH < 13 and (T >= 80 and T <= 112) %}
+        {% set ABS = T - 95.0 %}
+        {% if ABS < 0 %}
+          {% set ABS = ABS * -1 %}
+        {% endif %}
+        {% set HI = HI - ((13 - RH) / 4) * sqrt((17 - ABS) / 17) %}
+      {% elif RH > 85 and (T >= 80 and T <= 87) %}
+        {% set HI = HI + ((RH - 85) / 10) * ((87 - T) / 5) %}
+      {% endif %}
+    {% endif %}
+      
+    {{ HI }}
+  response: >
+    {{ {'heat_index': heat_index} }}
+
+sequence:
+  - stop: End
+    response_variable: response
+
+mode: single

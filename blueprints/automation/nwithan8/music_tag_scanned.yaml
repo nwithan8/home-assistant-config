@@ -1,0 +1,49 @@
+# This script will trigger an action based on the music tag being scanned.
+blueprint:
+  name: Music tag scanned
+  description: Trigger an action when a music tag is scanned.
+  domain: automation
+  input:
+    on_scan:
+      name: When tag scanned
+      description: What to do when the tag is scanned. "album" and "artist" will be available to you.
+      selector:
+        action: {}
+      default: []
+
+variables:
+  tags_to_details:
+    "9518934a-48c5-457f-8526-965766a3e30c":
+      "artist": "Son Lux"
+      "album": "Everything Everywhere All At Once"
+
+  scanned_tag: "{{ trigger.event.data.tag_id }}"
+  valid_tag: "{{ scanned_tag in tags_to_details.keys() }}"
+  album: >
+    {% if valid_tag %}
+      {{ tags_to_details[scanned_tag]["album"] }}
+    {% else %}
+      Unknown
+    {% endif %}
+  artist: >
+    {% if valid_tag %}
+      {{ tags_to_details[scanned_tag]["artist"] }}
+    {% else %}
+      Unknown
+    {% endif %}
+
+trigger:
+  - platform: event
+    event_type: tag_scanned
+
+condition: []
+
+action:
+  - choose:
+      - alias: Check if scanned tag is one we're tracking
+        conditions:
+          - condition: template
+            value_template: "{{ valid_tag }}"
+        sequence: !input on_scan
+
+mode: single
