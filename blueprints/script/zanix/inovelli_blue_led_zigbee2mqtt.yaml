@@ -1,6 +1,6 @@
 blueprint:
   name: Inovelli Blue LED (Zigbee2MQTT)
-  description: "Set LED effects for Inovelli VZM31-SN Blue Series 2-1 Switches using
+  description: "Set LED effects for Inovelli VZM31-SN and VZM35-SN Blue Series 2-1 Switches using
     Zigbee2MQTT.\n\nFeatures:\n\n- Select one or multiple devices, entities, or areas
     with Inovelli switches\n- Selectors for LED Number, Color, Brightness Level, Effect,
     and Duration\n- LED Number, Color, Effect, and Duration can accept direct values

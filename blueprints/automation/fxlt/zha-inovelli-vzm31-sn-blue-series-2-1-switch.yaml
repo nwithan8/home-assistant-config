@@ -1,17 +1,16 @@
 blueprint:
-  name: Inovelli VZM31-SN Blue Series 2-1 Switch (ZHA)
-  description: Create automations for the Inovelli VZM31-SN using ZHA.
+  name: Inovelli VZM31-SN or VZM35-SN Blue Series 2-1 Switch (ZHA)
+  description: Create automations for the Inovelli VZM31-SN or VZM35-SN using ZHA.
   domain: automation
   input:
     inovelli_switch:
-      name: Inovelli VZM31-SN
-      description: List of available Inovelli VZM31-SN switches.
+      name: Inovelli VZM31-SN or VZM35-SN
+      description: List of available Inovelli VZM31-SN and VZM35-SN switches.
       selector:
         device:
-          integration: zha
-          manufacturer: Inovelli
-          model: VZM31-SN
-          multiple: false
+          - integration: zha
+            manufacturer: Inovelli
+            multiple: false
     button_1:
       name: Down paddle pressed
       description: Action to run when down paddle is pressed once.
