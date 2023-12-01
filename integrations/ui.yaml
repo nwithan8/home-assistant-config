@@ -2,7 +2,8 @@ frontend:
   themes: !include_dir_merge_named ../themes/
   extra_module_url:
     - /local/community/custom-brand-icons/custom-brand-icons.js
+    - /hacsfiles/Bubble-Card/bubble-pop-up.js?v=1.5.3
 
 lovelace:
   mode: storage # Allows both UI and YAML configuration
-  dashboards: { }
+  dashboards: {}

@@ -1,0 +1,63 @@
+blueprint:
+  name: Calculate RGB Color
+  description: >-
+    A script that calculates RGB color code based on color index.
+  domain: script
+
+fields:
+  index_val:
+    description: The index
+    name: Index
+    required: true
+    selector:
+      number:
+        min: 0
+        max: 1535
+
+variables:
+  rgb_code: >
+    {%- set r = 0 -%}
+    {%- set g = 0 -%}
+    {%- set b = 0 -%}
+
+    {%- set index = index_val | int -%}
+
+    {%- if index > 0 and index <= 256 -%}
+      {%- set r = 255 -%}
+      {%- set g = index -%}
+      {%- set b = 0 -%}
+    {%- elif index > 256 and index <= 512 -%}
+      {%- set r = 512 - index -%}
+      {%- set g = 255 -%}
+      {%- set b = 0 -%}
+    {%- elif index > 512 and index <= 768 -%}
+      {%- set r = 0 -%}
+      {%- set g = 255 -%}
+      {%- set b = index - 512 -%}
+    {%- elif index > 768 and index <= 1024 -%}
+      {%- set r = 0 -%}
+      {%- set g = 1024 - index -%}
+      {%- set b = 255 -%}
+    {%- elif index > 1024 and index <= 1280 -%}
+      {%- set r = index - 1024 -%}
+      {%- set g = 0 -%}
+      {%- set b = 255 -%}
+    {%- elif index > 1280 and index <= 1536 -%}
+      {%- set r = 255 -%}
+      {%- set g = 0 -%}
+      {%- set b = 1536 - index -%}
+    {%- endif -%}
+    
+    {%- set r = r | string -%}
+    {%- set g = g | string -%}
+    {%- set b = b | string -%}
+    
+    {{ r + "," + g + "," + b }}
+  response: >
+    {{ {'rgb_code': rgb_code} }}
+
+sequence:
+  - stop: End
+    response_variable: response
+
+mode: single

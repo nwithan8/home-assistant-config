@@ -77,4 +77,4 @@ www
 .old_config
 /scripts.yaml
 /automations.yaml
-/sensors/gas_station*
+/sensors/gasbuddy_*

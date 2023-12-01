@@ -1,0 +1,405 @@
+blueprint:
+  name: HASPone p[x].b[y] displays the weather forecast
+  description: "\n## Blueprint Version: `1.05.00`\n\n## Description\n\nA HASPone button
+    displays an attribute of a selected weather forecast.  You can use this to display
+    tomorrow's condition, or tonight's low temp.  \nAvailable forecast conditions
+    will vary by weather provider, check your selected provider's state under `Developer
+    Tools` > `States` to get\na sense of what your selected provider has to offer.\n\n![Preview](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/hasp_Display_Weather_Forecast.png)\n\n##
+    HASPone Page and Button Reference\n\nThe images below show each available HASPone
+    page along with the layout of available button objects.\n\n<details>\n\n| Page
+    0 | Pages 1-3 | Pages 4-5 |\n|--------|-----------|-----------|\n| ![Page 0](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p0_Init_Screen.png)
+    | ![Pages 1-3](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p1-p3_4buttons.png)
+    | ![Pages 4-5](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p4-p5_3sliders.png)
+    |\n\n| Page 6 | Page 7 | Page 8 |\n|--------|--------|--------|\n| ![Page 6](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p6_8buttons.png)
+    | ![Page 7](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p7_12buttons.png)
+    | ![Page 8](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p8_5buttons+1slider.png)
+    |\n\n| Page 9 | Page 10 | Page 11 |\n|--------|---------|---------|\n| ![Page
+    9](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p9_9buttons.png)
+    | ![Page 10](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p10_5buttons.png)
+    | ![Page 11](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_p11_1button+1slider.png)\n\n</details>\n\n##
+    HASPone Font Reference\n\n<details>\n\nThe Nextion display supports monospaced
+    and proportional fonts.  For monospace fonts, the HASPone project includes [Consolas](https://docs.microsoft.com/en-us/typography/font-list/consolas)
+    monospace in 4 sizes, [Webdings](https://en.wikipedia.org/wiki/Webdings#Character_set)
+    in 1 size, and [Google's \"Noto Sans\"](https://github.com/googlefonts/noto-fonts)
+    proportional in 5 sizes\n\n| Font | Name              | Characters per line |
+    Lines per button |\n| :--- | :---------------- | :-------------------| :---------------
+    |\n| 0    | Consolas 24       | 20 characters       | 2 lines          |\n| 1
+    \   | Consolas 32       | 15 characters       | 2 lines          |\n| 2    | Consolas
+    48       | 10 characters       | 1 line           |\n| 3    | Consolas 80       |
+    6 characters        | 1 line           |\n| 4    | Webdings 56       | 8 characters
+    \       | 1 line           |\n| 5    | Noto Sans 24      | Proportional        |
+    2 lines          |\n| 6    | Noto Sans 32      | Proportional        | 2 lines
+    \         |\n| 7    | Noto Sans 48      | Proportional        | 1 line           |\n|
+    8    | Noto Sans 64      | Proportional        | 1 line           |\n| 9    |
+    Noto Sans 80      | Proportional        | 1 line           |\n| 10   | Noto Sans
+    Bold 80 | Proportional        | 1 line           |\n\n### Icons\n\nFonts 5-10
+    also include [1400+ icons which you can copy and paste from here](https://htmlpreview.github.io/?https://github.com/HASwitchPlate/HASPone/blob/main/images/hasp-fontawesome5.html)\n\n###
+    Font examples\n\n![HASPone Fonts 0-3](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_Fonts_0-3.png)
+    ![HASPone Fonts 4-7](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_Fonts_4-7.png)
+    ![HASPone Fonts 8-10](https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/images/NextionUI_Fonts_8-10.png)\n\n</details>\n\n##
+    Nextion color codes\n\n<details>\n\nThe Nextion environment utilizes RGB 565 encoding.
+    \ [Use this handy convertor](https://nodtem66.github.io/nextion-hmi-color-convert/index.html)
+    to select your colors and convert to the RGB 565 format.\n\nHere are some example
+    colors:\n\n| Color  | Code  |\n|--------|-------|\n| White  | 65535 |\n| Black
+    \ | 0     |\n| Grey   | 25388 |\n| Red    | 63488 |\n| Green  | 2016  |\n| Blue
+    \  | 31    |\n| Yellow | 65504 |\n| Orange | 64512 |\n| Brown  | 48192 |\n\n</details>\n"
+  domain: automation
+  input:
+    haspdevice:
+      name: HASPone Device
+      description: Select the HASPone device
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: HASwitchPlate
+          model: HASPone v1.0.0
+          multiple: false
+    hasppage:
+      name: HASPone Page
+      description: Select the HASPone page (1-11) for the forecast. Refer to the HASPone
+        Page and Button reference above.
+      default: 1
+      selector:
+        number:
+          min: 1.0
+          max: 11.0
+          mode: slider
+          unit_of_measurement: page
+          step: 1.0
+    haspbutton:
+      name: HASPone Button
+      description: Select the HASPone button (4-15) for the forecast. Refer to the
+        HASPone Page and Button reference above.
+      default: 4
+      selector:
+        number:
+          min: 4.0
+          max: 15.0
+          mode: slider
+          unit_of_measurement: button
+          step: 1.0
+    weather_provider:
+      name: Weather provider
+      description: Select the weather provider to obtain the forecast
+      selector:
+        entity:
+          domain:
+          - weather
+          multiple: false
+    forecast_index:
+      name: Forecast index
+      description: Weather forecasts are provided at intervals determined by your
+        weather source.  The next time interval will be index "0".  Increment this
+        number for future forecasts
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 10.0
+          mode: slider
+          unit_of_measurement: index
+          step: 1.0
+    forecast_attribute:
+      name: Enter the desired forecast attribute
+      description: Type in the name of the desired forecast attribute for your provider.  "condition"
+        is a common attribute for many providers.
+      default: condition
+      selector:
+        text: {}
+    prefix:
+      name: Forecast display prefix
+      description: 'Prefix for forecast display, maybe something like "tonight: "
+        or "tomorrow: ". Leave blank for no prefix. Use "\\r" for a newline.'
+      default:
+      selector:
+        text: {}
+    font_select:
+      name: Font
+      description: Select the font for the displayed text.  Refer to the HASPone Font
+        Reference above.
+      default: 8 - Noto Sans 64
+      selector:
+        select:
+          options:
+          - 0 - Consolas 24
+          - 1 - Consolas 32
+          - 2 - Consolas 48
+          - 3 - Consolas 80
+          - 4 - Webdings 56
+          - 5 - Noto Sans 24
+          - 6 - Noto Sans 32
+          - 7 - Noto Sans 48
+          - 8 - Noto Sans 64
+          - 9 - Noto Sans 80
+          - 10 - Noto Sans Bold 80
+          custom_value: false
+          multiple: false
+          sort: false
+    xcen_select:
+      name: Text horizontal alignment
+      description: 'Horizontal text alignment: 0=Left 1=Center 2=Right'
+      default: 1 - Centered
+      selector:
+        select:
+          options:
+          - 0 - Left aligned
+          - 1 - Centered
+          - 2 - Right aligned
+          custom_value: false
+          multiple: false
+          sort: false
+    ycen_select:
+      name: Text vertical alignment
+      description: 'Vertical text alignment: 0=Top 1=Center 2=Bottom'
+      default: 1 - Centered
+      selector:
+        select:
+          options:
+          - 0 - Top aligned
+          - 1 - Centered
+          - 2 - Bottom aligned
+          custom_value: false
+          multiple: false
+          sort: false
+    wrap:
+      name: Text wrap
+      default: false
+      description: Enable line-wrapping text if too long to fit in the button.
+      selector:
+        boolean: {}
+    title_case:
+      name: Title Case
+      description: Apply The Title Case Filter To Capitalize The First Character Of
+        Each Word In The Result
+      default: true
+      selector:
+        boolean: {}
+    selected_fgcolor:
+      name: Selected foreground color
+      description: Selected foreground color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme selected foreground
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    selected_bgcolor:
+      name: Selected background color
+      description: Selected background color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme selected background
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    unselected_fgcolor:
+      name: Unselected foreground color
+      description: Unselected foreground color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme unselected foreground
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+    unselected_bgcolor:
+      name: Unselected background color
+      description: Unselected background color in Nextion RGB565 format (see "Nextion
+        color codes" above for reference). -1 = Current theme unselected background
+        color.
+      default: -1
+      selector:
+        number:
+          min: -1.0
+          max: 65535.0
+          mode: slider
+          step: 1.0
+  source_url: https://raw.githubusercontent.com/HASwitchPlate/HASPone/main/Home_Assistant/blueprints/hasp_Display_Weather_Forecast.yaml
+mode: parallel
+max_exceeded: silent
+variables:
+  haspdevice: !input haspdevice
+  haspname: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{- entity|regex_replace(find=\"^sensor\\.\", replace=\"\", ignorecase=true)|regex_replace(find=\"_sensor(?:_\\d+|)$\",
+    replace=\"\", ignorecase=true) -}}\n  {%- endif -%}\n{%- endfor -%}"
+  hasppage: !input hasppage
+  haspbutton: !input haspbutton
+  weather_provider: !input weather_provider
+  forecast_index: !input forecast_index
+  forecast_attribute: !input forecast_attribute
+  prefix: !input prefix
+  font_select: !input font_select
+  font: '{{ font_select.split(" - ")[0] | int }}'
+  xcen_select: !input xcen_select
+  xcen: '{{ xcen_select.split(" - ")[0] | int }}'
+  ycen_select: !input ycen_select
+  ycen: '{{ ycen_select.split(" - ")[0] | int }}'
+  wrap: !input wrap
+  title_case: !input title_case
+  selected_fgcolor: !input selected_fgcolor
+  selected_bgcolor: !input selected_bgcolor
+  unselected_fgcolor: !input unselected_fgcolor
+  unselected_bgcolor: !input unselected_bgcolor
+  haspobject: '{{ "p[" ~ hasppage ~ "].b[" ~ haspbutton ~ "]" }}'
+  commandtopic: '{{ "hasp/" ~ haspname ~ "/command/" ~ haspobject }}'
+  jsoncommandtopic: '{{ "hasp/" ~ haspname ~ "/command/json" }}'
+  text: "{%- if prefix|lower != \"none\" -%}\n  {{ prefix }}\n{%- endif -%} {%- if
+    title_case -%}\n  {{ state_attr(weather_provider, \"forecast\")[forecast_index|int(default=0)].get(forecast_attribute)|replace(\"windy-variant\",\"windy\")|replace(\"clear-night\",\"clear
+    night\")|replace(\"partlycloudy\",\"partly cloudy\")|replace(\"lightning-rainy\",\"lightning
+    & rain\")|replace(\"snowy-rainy\",\"snow & rain\") | title }}\n{%- else -%}\n
+    \ {{ state_attr(weather_provider, \"forecast\")[forecast_index|int(default=0)].get(forecast_attribute)|replace(\"windy-variant\",\"windy\")|replace(\"clear-night\",\"clear
+    night\")|replace(\"partlycloudy\",\"partly cloudy\")|replace(\"lightning-rainy\",\"lightning
+    & rain\")|replace(\"snowy-rainy\",\"snow & rain\") }}\n{%- endif -%}"
+  isbr: '{% if wrap == true %}1{% else %}0{% endif %}'
+  selectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedforegroundcolor/rgb" }}'
+  selectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedbackgroundcolor/rgb" }}'
+  unselectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedforegroundcolor/rgb"
+    }}'
+  unselectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedbackgroundcolor/rgb"
+    }}'
+  selectedfg: "{%- if (selected_fgcolor|int) >= 0 -%}\n  {{ selected_fgcolor }}\n{%-
+    else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_selected_foreground_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  selectedbg: "{%- if (selected_bgcolor|int) >= 0 -%}\n  {{ selected_bgcolor }}\n{%-
+    else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_selected_background_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  unselectedfg: "{%- if (unselected_fgcolor|int) >= 0 -%}\n  {{ unselected_fgcolor
+    }}\n{%- else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_unselected_foreground_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+  unselectedbg: "{%- if (unselected_bgcolor|int) >= 0 -%}\n  {{ unselected_bgcolor
+    }}\n{%- else -%}\n  {%- set color = namespace() -%}\n  {%- for entity in device_entities(haspdevice)
+    -%}\n    {%- if entity|regex_search(\"^light\\..*_unselected_background_color(?:_\\d+|)$\")
+    -%}\n      {%- set color.source=entity -%}\n    {%- endif -%}\n  {%- endfor -%}\n
+    \ {%- set brightness = state_attr(color.source, \"brightness\")|int(default=255)
+    / 255 -%}\n  {%- set red=(state_attr(color.source, \"rgb_color\")[0] * brightness)|int(default=0)
+    -%}\n  {%- set green=(state_attr(color.source, \"rgb_color\")[1] * brightness)|int(default=0)
+    -%}\n  {%- set blue=(state_attr(color.source, \"rgb_color\")[2] * brightness)|int(default=0)
+    -%}\n  {{ (red|bitwise_and(248)*256) + (green|bitwise_and(252)*8) + (blue|bitwise_and(248)/8)|int
+    }}\n{%- endif -%}"
+trigger_variables:
+  haspdevice: !input haspdevice
+  haspname: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{- entity|regex_replace(find=\"^sensor\\.\", replace=\"\", ignorecase=true)|regex_replace(find=\"_sensor(?:_\\d+|)$\",
+    replace=\"\", ignorecase=true) -}}\n  {%- endif -%}\n{%- endfor -%}"
+  haspsensor: "{%- for entity in device_entities(haspdevice) -%}\n  {%- if entity|regex_search(\"^sensor\\..+_sensor(?:_\\d+|)$\")
+    -%}\n    {{ entity }}\n  {%- endif -%}\n{%- endfor -%}"
+  selectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedforegroundcolor/rgb" }}'
+  selectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/selectedbackgroundcolor/rgb" }}'
+  unselectedfgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedforegroundcolor/rgb"
+    }}'
+  unselectedbgtopic: '{{ "hasp/" ~ haspname ~ "/light/unselectedbackgroundcolor/rgb"
+    }}'
+trigger:
+- platform: state
+  entity_id: !input weather_provider
+- platform: template
+  value_template: '{{ is_state(haspsensor, ''ON'') }}'
+- platform: homeassistant
+  event: start
+- platform: mqtt
+  topic: '{{selectedfgtopic}}'
+- platform: mqtt
+  topic: '{{selectedbgtopic}}'
+- platform: mqtt
+  topic: '{{unselectedfgtopic}}'
+- platform: mqtt
+  topic: '{{unselectedbgtopic}}'
+condition:
+- condition: template
+  value_template: '{{ is_state(haspsensor, ''ON'') }}'
+action:
+- choose:
+  - conditions:
+    - condition: template
+      value_template: "{{-\n  (trigger is not defined)\nor\n  (trigger.platform is
+        none)\nor\n  ((trigger.platform == 'homeassistant') and (trigger.event ==
+        'start'))\nor\n  ((trigger.platform == 'template') and (trigger.entity_id
+        == haspsensor) and (trigger.to_state.state == 'ON'))\n-}}"
+    sequence:
+    - service: mqtt.publish
+      data:
+        topic: '{{jsoncommandtopic}}'
+        payload: '[ "{{haspobject}}.font={{font}}", "{{haspobject}}.xcen={{xcen}}",
+          "{{haspobject}}.ycen={{ycen}}", "{{haspobject}}.isbr={{isbr}}", "{{haspobject}}.pco={{selectedfg}}",
+          "{{haspobject}}.bco={{selectedbg}}", "{{haspobject}}.pco2={{unselectedfg}}",
+          "{{haspobject}}.bco2={{unselectedbg}}", "{{haspobject}}.txt=\"{{text}}\""
+          ]'
+  - conditions:
+    - condition: template
+      value_template: '{{ (trigger.platform == "state") and (trigger.entity_id ==
+        weather_provider) }}'
+    sequence:
+    - service: mqtt.publish
+      data:
+        topic: '{{commandtopic}}.txt'
+        payload: '"{{text}}"'
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.platform == "mqtt" }}'
+    sequence:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == selectedfgtopic) and ((selected_fgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.pco'
+            payload: '{{trigger.payload}}'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == selectedbgtopic) and ((selected_bgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.bco'
+            payload: '{{trigger.payload}}'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == unselectedfgtopic) and ((unselected_fgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.pco2'
+            payload: '{{trigger.payload}}'
+      - conditions:
+        - condition: template
+          value_template: '{{ (trigger.topic == unselectedbgtopic) and ((unselected_bgcolor|int)
+            == -1) }}'
+        sequence:
+        - service: mqtt.publish
+          data:
+            topic: '{{commandtopic}}.bco2'
+            payload: '{{trigger.payload}}'

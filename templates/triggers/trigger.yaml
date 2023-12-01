@@ -18,7 +18,7 @@
       data:
         type: hourly
       target:
-        entity_id: weather.kbjc_hourly
+        entity_id: weather.openweathermap
       response_variable: forecast
     - service: script.1696374658541
       data:
@@ -26,23 +26,23 @@
         humidity: "{{ forecast.forecast[0].humidity }}"
       response_variable: heat_index
   sensor:
-    - name: Current weather precipitation probability
+    - name: Current hourly weather precipitation probability
       state: "{{ forecast.forecast[0].precipitation_probability }}"
-    - name: Current weather hourly forecast
+    - name: Current hourly weather hourly forecast
       state: "{{ forecast.forecast[0].condition }}"
-    - name: Current weather temperature
+    - name: Current hourly weather temperature
       state: "{{ forecast.forecast[0].temperature }}"
-    - name: Current weather dew point
+    - name: Current hourly weather dew point
       state: "{{ forecast.forecast[0].dew_point }}"
-    - name: Current weather wind bearing
+    - name: Current hourly weather wind bearing
       state: "{{ forecast.forecast[0].wind_bearing }}"
-    - name: Current weather wind speed
+    - name: Current hourly weather wind speed
       state: "{{ forecast.forecast[0].wind_speed }}"
-    - name: Current weather humidity
+    - name: Current hourly weather humidity
       state: "{{ forecast.forecast[0].humidity }}"
-    - name: Current weather description
+    - name: Current hourly weather description
       state: "{{ forecast.forecast[0].detailed_description }}"
-    - name: Current heat index
+    - name: Current hourly heat index
       state: "{{ heat_index.heat_index }}"
 
 # Update daily weather summary
@@ -58,7 +58,7 @@
         entity_id: weather.kbjc_daynight
       response_variable: forecast
   sensor:
-    - name: Current weather description
+    - name: Current daily weather description
       state: "{{ forecast.forecast[0].detailed_description }}"
 
     
