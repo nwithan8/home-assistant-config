@@ -13,6 +13,10 @@
     - platform: time_pattern
       minutes: "3"
       seconds: "12"
+    - platform: homeassistant
+      event: start
+    - platform: event
+      event_type: event_template_reloaded
   action:
     - service: weather.get_forecast
       data:
@@ -52,6 +56,10 @@
     - platform: time_pattern
       minutes: "3"
       seconds: "12"
+    - platform: homeassistant
+      event: start
+    - platform: event
+      event_type: event_template_reloaded
   action:
     - service: weather.get_forecast
       data:
@@ -68,6 +76,10 @@
     - platform: time_pattern
       minutes: "4"
       seconds: "12"
+    - platform: homeassistant
+      event: start
+    - platform: event
+      event_type: event_template_reloaded
   action:
     - service: script.calculate_target_inside_temperature
       data:
