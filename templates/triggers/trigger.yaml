@@ -30,6 +30,8 @@
         humidity: "{{ forecast.forecast[0].humidity }}"
       response_variable: heat_index
   sensor:
+    - name: Current hourly weather last checked
+      state: "{{ now() }}"
     - name: Current hourly weather precipitation probability
       state: "{{ forecast.forecast[0].precipitation_probability }}"
     - name: Current hourly weather hourly forecast
@@ -48,8 +50,6 @@
       state: "{{ forecast.forecast[0].detailed_description }}"
     - name: Current hourly heat index
       state: "{{ heat_index.heat_index }}"
-    - name: Current hourly target inside temperature
-      state: "{{ }}"
 
 # Update daily weather summary
 - trigger:
@@ -68,6 +68,8 @@
         entity_id: weather.kbjc_daynight
       response_variable: forecast
   sensor:
+    - name: Current daily weather last checked
+      state: "{{ now() }}"
     - name: Current daily weather description
       state: "{{ forecast.forecast[0].detailed_description }}"
 
@@ -86,5 +88,7 @@
         temperature: "{{ states('sensor.current_heat_index') }}"
       response_variable: target_temp
   sensor:
+    - name: Current hourly target inside temperature last checked
+      state: "{{ now() }}"
     - name: Current hourly target inside temperature
       state: "{{ target_temp.target_temp }}"
