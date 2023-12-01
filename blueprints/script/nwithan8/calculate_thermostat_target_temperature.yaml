@@ -1,0 +1,38 @@
+blueprint:
+  name: Calculate Target Temperature
+  description: >-
+    A script that calculates the target temperature based on the outside temperature.
+  domain: script
+
+fields:
+  temperature:
+    description: The outside temperature
+    name: Temperature
+    required: true
+    selector:
+      number:
+        min: -150
+        max: 150
+        unit_of_measurement: "F"
+
+variables:
+  target_temperature: >
+    {% set T = temperature %}
+
+    {% set e = 2.71828 %}
+    {% set max = 82 %}
+    {% set scale_max = 80 %}
+    {% set scale_min = 55 %}
+    {% set rate = -0.014 %}
+
+    {% set TT = max - (scale_max - scale_min) * (e ** (rate * T)) %}
+      
+    {{ TT }}
+  response: >
+    {{ {'target_temp': target_temperature} }}
+
+sequence:
+  - stop: End
+    response_variable: response
+
+mode: single

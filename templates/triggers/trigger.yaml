@@ -44,6 +44,8 @@
       state: "{{ forecast.forecast[0].detailed_description }}"
     - name: Current hourly heat index
       state: "{{ heat_index.heat_index }}"
+    - name: Current hourly target inside temperature
+      state: "{{ }}"
 
 # Update daily weather summary
 - trigger:
@@ -61,4 +63,16 @@
     - name: Current daily weather description
       state: "{{ forecast.forecast[0].detailed_description }}"
 
-    
+# Update inside temperature target (after heat index calculated)
+- trigger:
+    - platform: time_pattern
+      minutes: "4"
+      seconds: "12"
+  action:
+    - service: script.calculate_target_inside_temperature
+      data:
+        temperature: "{{ states('sensor.current_heat_index') }}"
+      response_variable: target_temp
+  sensor:
+    - name: Current hourly target inside temperature
+      state: "{{ target_temp.target_temp }}"
