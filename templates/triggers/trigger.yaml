@@ -1,11 +1,11 @@
 # Note when the garage door was last opened
 - trigger:
     - platform: state
-      entity_id: cover.garage_door
-      from: cover.close_cover
-      to: cover.open_cover
+      entity_id: binary_sensor.garage_door_state
+      to: "on"
   sensor:
     - name: Garage door last opened
+      device_class: timestamp
       state: "{{ now() }}"
 
 # Update weather hourly
@@ -41,28 +41,51 @@
       response_variable: target_temp
   sensor:
     - name: Weather last checked
+      device_class: timestamp
       state: "{{ now() }}"
-    - name: Current hourly weather precipitation probability
-      state: "{{ hourly_forecast.forecast[0].precipitation_probability }}"
-    - name: Current hourly weather hourly forecast
+    - name: Current hourly weather condition
+      # Generic text, doesn't need special class or units
       state: "{{ hourly_forecast.forecast[0].condition }}"
+    - name: Current daily weather description
+      # Generic text, doesn't need special class or units
+      state: "{{ daily_forecast.forecast[5].detailed_description }}" # Not sure if this will always be the "now" one
     - name: Current hourly weather temperature
+      device_class: temperature
+      unit_of_measurement: "°F"
       state: "{{ hourly_forecast.forecast[0].temperature }}"
     - name: Current hourly weather dew point
+      device_class: temperature
+      unit_of_measurement: "°F"
       state: "{{ hourly_forecast.forecast[0].dew_point }}"
     - name: Current hourly weather wind bearing
+      # Generic angle, doesn't need special class or units
+      unit_of_measurement: "°"
       state: "{{ hourly_forecast.forecast[0].wind_bearing }}"
     - name: Current hourly weather wind speed
+      device_class: speed
+      unit_of_measurement: "mph"
       state: "{{ hourly_forecast.forecast[0].wind_speed }}"
+    - name: Current hourly weather precipitation probability
+      # Generic percentage, doesn't need special class
+      unit_of_measurement: "%"
+      state: "{{ hourly_forecast.forecast[0].precipitation_probability }}"
     - name: Current hourly weather humidity
+      device_class: humidity
+      unit_of_measurement: "%"
       state: "{{ hourly_forecast.forecast[0].humidity }}"
     - name: Current hourly weather pressure
+      device_class: pressure
+      unit_of_measurement: "mmHg" # I assume?
       state: "{{ hourly_forecast.forecast[0].pressure }}"
     - name: Current hourly weather cloud coverage
+      # Generic percentage, doesn't need special class
+      unit_of_measurement: "%"
       state: "{{ hourly_forecast.forecast[0].cloud_coverage }}"
     - name: Current hourly heat index
+      device_class: temperature
+      unit_of_measurement: "°F"
       state: "{{ heat_index.heat_index }}"
     - name: Current hourly target inside temperature
+      device_class: temperature
+      unit_of_measurement: "°F"
       state: "{{ target_temp.target_temp }}"
-    - name: Current daily weather description
-      state: "{{ daily_forecast.forecast[5].detailed_description }}" # Not sure if this will always be the "now" one
