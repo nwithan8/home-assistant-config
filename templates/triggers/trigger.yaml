@@ -5,10 +5,10 @@
       from: cover.close_cover
       to: cover.open_cover
   sensor:
-    - name: Garage Door Last Opened
+    - name: Garage door last opened
       state: "{{ now() }}"
 
-# Update hourly weather
+# Update weather hourly
 - trigger:
     - platform: time_pattern
       minutes: "3"
@@ -23,72 +23,46 @@
         type: hourly
       target:
         entity_id: weather.openweathermap
-      response_variable: forecast
-    - service: script.1696374658541
-      data:
-        temperature: "{{ forecast.forecast[0].temperature }}"
-        humidity: "{{ forecast.forecast[0].humidity }}"
-      response_variable: heat_index
-  sensor:
-    - name: Current hourly weather last checked
-      state: "{{ now() }}"
-    - name: Current hourly weather precipitation probability
-      state: "{{ forecast.forecast[0].precipitation_probability }}"
-    - name: Current hourly weather hourly forecast
-      state: "{{ forecast.forecast[0].condition }}"
-    - name: Current hourly weather temperature
-      state: "{{ forecast.forecast[0].temperature }}"
-    - name: Current hourly weather dew point
-      state: "{{ forecast.forecast[0].dew_point }}"
-    - name: Current hourly weather wind bearing
-      state: "{{ forecast.forecast[0].wind_bearing }}"
-    - name: Current hourly weather wind speed
-      state: "{{ forecast.forecast[0].wind_speed }}"
-    - name: Current hourly weather humidity
-      state: "{{ forecast.forecast[0].humidity }}"
-    - name: Current hourly weather description
-      state: "{{ forecast.forecast[0].detailed_description }}"
-    - name: Current hourly heat index
-      state: "{{ heat_index.heat_index }}"
-
-# Update daily weather summary
-- trigger:
-    - platform: time_pattern
-      minutes: "3"
-      seconds: "12"
-    - platform: homeassistant
-      event: start
-    - platform: event
-      event_type: event_template_reloaded
-  action:
+      response_variable: hourly_forecast
     - service: weather.get_forecast
       data:
         type: twice_daily
       target:
         entity_id: weather.kbjc_daynight
-      response_variable: forecast
-  sensor:
-    - name: Current daily weather last checked
-      state: "{{ now() }}"
-    - name: Current daily weather description
-      state: "{{ forecast.forecast[0].detailed_description }}"
-
-# Update inside temperature target (after heat index calculated)
-- trigger:
-    - platform: time_pattern
-      minutes: "4"
-      seconds: "12"
-    - platform: homeassistant
-      event: start
-    - platform: event
-      event_type: event_template_reloaded
-  action:
+      response_variable: daily_forecast
+    - service: script.1696374658541
+      data:
+        temperature: "{{ hourly_forecast.forecast[0].temperature }}"
+        humidity: "{{ hourly_forecast.forecast[0].humidity }}"
+      response_variable: heat_index
     - service: script.calculate_target_inside_temperature
       data:
-        temperature: "{{ states('sensor.current_heat_index') }}"
+        temperature: "{{ heat_index.heat_index }}"
       response_variable: target_temp
   sensor:
-    - name: Current hourly target inside temperature last checked
+    - name: Weather last checked
       state: "{{ now() }}"
+    - name: Current hourly weather precipitation probability
+      state: "{{ hourly_forecast.forecast[0].precipitation_probability }}"
+    - name: Current hourly weather hourly forecast
+      state: "{{ hourly_forecast.forecast[0].condition }}"
+    - name: Current hourly weather temperature
+      state: "{{ hourly_forecast.forecast[0].temperature }}"
+    - name: Current hourly weather dew point
+      state: "{{ hourly_forecast.forecast[0].dew_point }}"
+    - name: Current hourly weather wind bearing
+      state: "{{ hourly_forecast.forecast[0].wind_bearing }}"
+    - name: Current hourly weather wind speed
+      state: "{{ hourly_forecast.forecast[0].wind_speed }}"
+    - name: Current hourly weather humidity
+      state: "{{ hourly_forecast.forecast[0].humidity }}"
+    - name: Current hourly weather pressure
+      state: "{{ hourly_forecast.forecast[0].pressure }}"
+    - name: Current hourly weather cloud coverage
+      state: "{{ hourly_forecast.forecast[0].cloud_coverage }}"
+    - name: Current hourly heat index
+      state: "{{ heat_index.heat_index }}"
     - name: Current hourly target inside temperature
       state: "{{ target_temp.target_temp }}"
+    - name: Current daily weather description
+      state: "{{ daily_forecast.forecast[5].detailed_description }}" # Not sure if this will always be the "now" one
