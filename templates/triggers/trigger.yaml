@@ -19,28 +19,25 @@
     - platform: event
       event_type: event_template_reloaded
   action:
+    # ref for 2023.12+ response_variable: https://github.com/home-assistant/core/issues/105160#issuecomment-1843854230
     - service: weather.get_forecasts
       data:
         type: hourly
       target:
-        entity_id: weather.openweathermap
-      response_variable: owm_hourly_forecast
-    - service: weather.get_forecasts
-      data:
-        type: hourly
-      target:
-        entity_id: weather.kbjc_hourly
-      response_variable: nws_hourly_forecast
+        entity_id: 
+          - weather.openweathermap
+          - weather.kbjc_hourly
+      response_variable: hourly_forecast
     - service: weather.get_forecasts
       data:
         type: twice_daily
       target:
         entity_id: weather.kbjc_daynight
-      response_variable: nws_twice_daily_forecast
+      response_variable: twice_daily_forecast
     - service: script.1696374658541
       data:
-        temperature: "{{ nws_hourly_forecast.forecast[0].temperature }}"
-        humidity: "{{ nws_hourly_forecast.forecast[0].humidity }}"
+        temperature: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].temperature }}"
+        humidity: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].humidity }}"
       response_variable: heat_index
     - service: script.calculate_target_inside_temperature
       data:
@@ -64,50 +61,50 @@
     - name: Weather condition
       unique_id: 29d79c51-8dbb-4a2c-82d3-28a5f74f5313
       # Generic text, doesn't need special class or units
-      state: "{{ nws_hourly_forecast.forecast[0].condition }}"
+      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].condition }}"
     - name: Weather description
       unique_id: a0130181-cc31-4c95-8c0a-a084e42f652b
       # Generic text, doesn't need special class or units
-      state: "{{ nws_twice_daily_forecast.forecast[0].detailed_description }}" # Not on NWS Hourly
+      state: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast[0].detailed_description }}" # Not on NWS Hourly
     - name: Weather temperature
       unique_id: 05248cc1-9386-4d35-bc4c-536125dbc60c
       device_class: temperature
       unit_of_measurement: "°F"
-      state: "{{ nws_hourly_forecast.forecast[0].temperature }}"
+      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].temperature }}"
     - name: Weather dew point
       unique_id: 36573a2e-c516-43e4-8848-75e26d44089b
       device_class: temperature
       unit_of_measurement: "°F"
-      state: "{{ nws_hourly_forecast.forecast[0].dew_point }}"
+      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].dew_point }}"
     - name: Weather wind bearing
       unique_id: 2f4837de-67c6-4098-baae-22e1900ed561
       # Generic angle, doesn't need special class or units
       unit_of_measurement: "°"
-      state: "{{ nws_hourly_forecast.forecast[0].wind_bearing }}"
+      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].wind_bearing }}"
     - name: Weather wind speed
       unique_id: b9df4cd2-1176-48aa-b2f9-665ce79990ff
       device_class: speed
       unit_of_measurement: "m/s"
       # m/s for OWM: https://github.com/home-assistant/core/blob/dev/homeassistant/components/openweathermap/sensor.py#L211
       # kph for NWS: https://github.com/home-assistant/core/blob/dev/homeassistant/components/nws/sensor.py#L95
-      state: "{{ nws_hourly_forecast.forecast[0].wind_speed }}"
+      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].wind_speed }}"
     - name: Weather precipitation
       unique_id: 1fb8d0e0-3db7-4ff7-bb9c-e0de659d9cdb
       device_class: precipitation
       unit_of_measurement: "mm"
       # mm for OWM: https://github.com/home-assistant/core/blob/a3dd2b8ea9f3f73f54905be79be9da237b07cf55/homeassistant/components/openweathermap/sensor.py#L173
       # Does not exist for NWS
-      state: "{{ owm_hourly_forecast.forecast[0].precipitation }}" # Not on NWS
+      state: "{{ hourly_forecast['weather.openweathermap'].forecast[0].precipitation }}" # Not on NWS
     - name: Weather precipitation probability
       unique_id: 7a309f57-8c78-48b2-95ca-afc2be8ca840
       # Generic percentage, doesn't need special class
       unit_of_measurement: "%"
-      state: "{{ nws_hourly_forecast.forecast[0].precipitation_probability }}"
+      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].precipitation_probability }}"
     - name: Weather humidity
       unique_id: 95333407-5741-478e-af17-8ac19a2d9e51
       device_class: humidity
       unit_of_measurement: "%"
-      state: "{{ owm_hourly_forecast.forecast[0].humidity }}"
+      state: "{{ hourly_forecast['weather.openweathermap'].forecast[0].humidity }}"
     - name: Weather pressure
       unique_id: e7cf8f34-5abf-445d-b302-3320036d68aa
       device_class: pressure
@@ -115,12 +112,12 @@
       # hPa for OWM: https://github.com/home-assistant/core/blob/dev/homeassistant/components/openweathermap/sensor.py#L114
       # Although seems to be reporting in inHg instead...
       # Pa for NWS: https://github.com/home-assistant/core/blob/dev/homeassistant/components/nws/sensor.py#L119
-      state: "{{ owm_hourly_forecast.forecast[0].pressure }}" # Not on NWS
+      state: "{{ hourly_forecast['weather.openweathermap'].forecast[0].pressure }}" # Not on NWS
     - name: Weather cloud coverage
       unique_id: 9771d25d-41bc-4bcf-9f59-946c9874d3a1
       # Generic percentage, doesn't need special class
       unit_of_measurement: "%"
-      state: "{{ owm_hourly_forecast.forecast[0].cloud_coverage }}" # Not on NWS
+      state: "{{ hourly_forecast['weather.openweathermap'].forecast[0].cloud_coverage }}" # Not on NWS
 
     # Based on current weather
 
@@ -142,19 +139,19 @@
       device_class: timestamp
       state: "{{ now() }}"
       attributes:
-        forecast: "{{ nws_hourly_forecast.forecast }}" # change to NWS? Change below if so
+        forecast: "{{ hourly_forecast['weather.kbjc_hourly'].forecast }}" # change to NWS? Change below if so
     - name: Weather twice daily forecast
       device_class: timestamp
       unique_id: 6b43e900-d9be-4a54-b5bb-d97e663696ee
       state: "{{ now() }}"
       attributes:
-        forecast: "{{ nws_twice_daily_forecast.forecast }}"
+        forecast: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}"
     - name: Weather forecast time
       state: >
-        {{ nws_hourly_forecast.forecast[0].datetime }}
+        {{ hourly_forecast['weather.kbjc_hourly'].forecast[0].datetime }}
     - name: Weather forecast time day of week
       state: >
-        {{ nws_hourly_forecast.forecast[0].datetime | as_timestamp() | timestamp_custom('%a') }}
+        {{ hourly_forecast['weather.kbjc_hourly'].forecast[0].datetime | as_timestamp() | timestamp_custom('%a') }}
 
     # Today
 
@@ -166,7 +163,7 @@
       state: >
         {% set target_datetime = now() %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -183,7 +180,7 @@
       state: >
         {% set target_datetime = now() %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -205,7 +202,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -224,7 +221,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -240,7 +237,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(condition="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {# Just grab the first available for today, don't worry about it being daytime #}
           {% if forecast_datetime.date() == target_datetime.date() %}
@@ -256,7 +253,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(description="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {# Just grab the first available for today, don't worry about it being daytime #}
           {% if forecast_datetime.date() == target_datetime.date() %}
@@ -277,7 +274,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -296,7 +293,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -312,7 +309,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(condition="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
             {% set ns.condition = forecast.condition %}
@@ -327,7 +324,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(description="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
             {% set ns.description = forecast.detailed_description %}
@@ -347,7 +344,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -366,7 +363,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -382,7 +379,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(condition="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
             {% set ns.condition = forecast.condition %}
@@ -397,7 +394,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(description="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
             {% set ns.description = forecast.detailed_description %}
@@ -417,7 +414,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -436,7 +433,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -452,7 +449,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(condition="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
             {% set ns.condition = forecast.condition %}
@@ -467,7 +464,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(description="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
             {% set ns.description = forecast.detailed_description %}
@@ -487,7 +484,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -506,7 +503,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in nws_hourly_forecast.forecast %}
+        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -522,7 +519,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(condition="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
             {% set ns.condition = forecast.condition %}
@@ -537,7 +534,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(description="") %}
-        {% for forecast in nws_twice_daily_forecast.forecast %}
+        {% for forecast in twice_daily_forecast['weather.kbjc_daynight'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
             {% set ns.description = forecast.detailed_description %}
@@ -553,19 +550,19 @@
     # ref: https://developers.home-assistant.io/docs/core/entity/weather/#unit-conversion
     - name: Weather
       unique_id: 46bce95a-90e7-11ee-b9d1-0242ac120002
-      condition_template: "{{ owm_hourly_forecast.forecast[0].condition }}"
-      temperature_template: "{{ owm_hourly_forecast.forecast[0].temperature }}"
-      dew_point_template: "{{ nws_twice_daily_forecast.forecast[0].dew_point }}"
+      condition_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].condition }}"
+      temperature_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].temperature }}"
+      dew_point_template: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast[0].dew_point }}"
       apparent_temperature_template: "{{ heat_index.heat_index }}"
       temperature_unit: "°F" # See notes at beginning of "sensor" section above
-      humidity_template: "{{ owm_hourly_forecast.forecast[0].humidity }}"
-      pressure_template: "{{ owm_hourly_forecast.forecast[0].pressure }}"
+      humidity_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].humidity }}"
+      pressure_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].pressure }}"
       pressure_unit: "inHg" # Make sure this matches the pressure unit in "sensor" section above
-      wind_speed_template: "{{ owm_hourly_forecast.forecast[0].wind_speed }}"
+      wind_speed_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].wind_speed }}"
       wind_speed_unit: "m/s" # Make sure this matches the wind speed unit in "sensor" section above
-      cloud_coverage_template: "{{ owm_hourly_forecast.forecast[0].cloud_coverage }}"
-      forecast_template: "{{ nws_hourly_forecast.forecast }}" # Will be removed in 2024.3
-      forecast_daily_template: "{{ nws_twice_daily_forecast.forecast }}" # Will be removed in 2024.3
-      forecast_hourly_template: "{{ owm_hourly_forecast.forecast }}" # Will be removed in 2024.3
-      forecast_twice_daily_template: "{{ nws_twice_daily_forecast.forecast }}" # Will be removed in 2024.3
+      cloud_coverage_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].cloud_coverage }}"
+      forecast_template: "{{ hourly_forecast['weather.kbjc_hourly'].forecast }}" # Will be removed in 2024.3
+      forecast_daily_template: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}" # Will be removed in 2024.3
+      forecast_hourly_template: "{{ hourly_forecast['weather.openweathermap'].forecast }}" # Will be removed in 2024.3
+      forecast_twice_daily_template: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}" # Will be removed in 2024.3
       precipitation_unit: "mm" # Make sure this matches the precipitation unit in "sensor" section above
