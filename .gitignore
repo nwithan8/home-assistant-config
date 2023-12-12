@@ -21,6 +21,7 @@ secrets.yaml
 googleassistantauth.json
 pyozw.sqlite
 govee_learning.yaml
+rclone.conf
 
 # Build-in blueprints ignores
 blueprints/*/homeassistant
