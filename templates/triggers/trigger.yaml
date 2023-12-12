@@ -8,84 +8,564 @@
       device_class: timestamp
       state: "{{ now() }}"
 
-# Update weather hourly
+# Update weather every five minutes
 - trigger:
+    # ref: https://www.home-assistant.io/integrations/template#trigger-based-template-binary-sensors-buttons-images-numbers-selects-and-sensors
     - platform: time_pattern
-      minutes: "3"
-      seconds: "12"
+      minutes: "/5"
+      seconds: "12" # offset to the 12th second
     - platform: homeassistant
       event: start
     - platform: event
       event_type: event_template_reloaded
   action:
-    - service: weather.get_forecast
+    - service: weather.get_forecasts
       data:
         type: hourly
       target:
         entity_id: weather.openweathermap
-      response_variable: hourly_forecast
-    - service: weather.get_forecast
+      response_variable: owm_hourly_forecast
+    - service: weather.get_forecasts
+      data:
+        type: hourly
+      target:
+        entity_id: weather.kbjc_hourly
+      response_variable: nws_hourly_forecast
+    - service: weather.get_forecasts
       data:
         type: twice_daily
       target:
         entity_id: weather.kbjc_daynight
-      response_variable: daily_forecast
+      response_variable: nws_twice_daily_forecast
     - service: script.1696374658541
       data:
-        temperature: "{{ hourly_forecast.forecast[0].temperature }}"
-        humidity: "{{ hourly_forecast.forecast[0].humidity }}"
+        temperature: "{{ nws_hourly_forecast.forecast[0].temperature }}"
+        humidity: "{{ nws_hourly_forecast.forecast[0].humidity }}"
       response_variable: heat_index
     - service: script.calculate_target_inside_temperature
       data:
         temperature: "{{ heat_index.heat_index }}"
       response_variable: target_temp
   sensor:
+    # ref: https://www.home-assistant.io/integrations/template/#sensor
+    # Both NWS https://github.com/home-assistant/core/blob/dev/homeassistant/components/nws/sensor.py#L63 and OWM https://github.com/home-assistant/core/blob/dev/homeassistant/components/openweathermap/sensor.py#L80
+    # use Celcius by default, but the data returned by the service is automatically translated to F, due to our global temperature unit selection in HA's settings: https://community.home-assistant.io/t/temperature-just-switched-from-c-to-f-why/57511/2
+    # HA settings: https://www.home-assistant.io/docs/configuration/basic/#unit_system
+    # For all other units, NWS will automatically translate to the non-metric equivalent if HA settings is set to use US Customary: https://github.com/home-assistant/core/blob/dev/homeassistant/components/nws/sensor.py#L63
+    # OWM does not check this, so the units remain in the original metric format
     - name: Weather last checked
       device_class: timestamp
       state: "{{ now() }}"
-    - name: Current hourly weather condition
+
+    # Current weather
+
+    # NWS Hourly has a new entry for each hour, while OWM does every 3 hours. We use OWM for some points that NWS doesn't have, but that data may be in the future...
+
+    - name: Weather condition
+      unique_id: 29d79c51-8dbb-4a2c-82d3-28a5f74f5313
       # Generic text, doesn't need special class or units
-      state: "{{ hourly_forecast.forecast[0].condition }}"
-    - name: Current daily weather description
+      state: "{{ nws_hourly_forecast.forecast[0].condition }}"
+    - name: Weather description
+      unique_id: a0130181-cc31-4c95-8c0a-a084e42f652b
       # Generic text, doesn't need special class or units
-      state: "{{ daily_forecast.forecast[5].detailed_description }}" # Not sure if this will always be the "now" one
-    - name: Current hourly weather temperature
+      state: "{{ nws_twice_daily_forecast.forecast[0].detailed_description }}" # Not on NWS Hourly
+    - name: Weather temperature
+      unique_id: 05248cc1-9386-4d35-bc4c-536125dbc60c
       device_class: temperature
       unit_of_measurement: "°F"
-      state: "{{ hourly_forecast.forecast[0].temperature }}"
-    - name: Current hourly weather dew point
+      state: "{{ nws_hourly_forecast.forecast[0].temperature }}"
+    - name: Weather dew point
+      unique_id: 36573a2e-c516-43e4-8848-75e26d44089b
       device_class: temperature
       unit_of_measurement: "°F"
-      state: "{{ hourly_forecast.forecast[0].dew_point }}"
-    - name: Current hourly weather wind bearing
+      state: "{{ nws_hourly_forecast.forecast[0].dew_point }}"
+    - name: Weather wind bearing
+      unique_id: 2f4837de-67c6-4098-baae-22e1900ed561
       # Generic angle, doesn't need special class or units
       unit_of_measurement: "°"
-      state: "{{ hourly_forecast.forecast[0].wind_bearing }}"
-    - name: Current hourly weather wind speed
+      state: "{{ nws_hourly_forecast.forecast[0].wind_bearing }}"
+    - name: Weather wind speed
+      unique_id: b9df4cd2-1176-48aa-b2f9-665ce79990ff
       device_class: speed
-      unit_of_measurement: "mph"
-      state: "{{ hourly_forecast.forecast[0].wind_speed }}"
-    - name: Current hourly weather precipitation probability
+      unit_of_measurement: "m/s"
+      # m/s for OWM: https://github.com/home-assistant/core/blob/dev/homeassistant/components/openweathermap/sensor.py#L211
+      # kph for NWS: https://github.com/home-assistant/core/blob/dev/homeassistant/components/nws/sensor.py#L95
+      state: "{{ nws_hourly_forecast.forecast[0].wind_speed }}"
+    - name: Weather precipitation
+      unique_id: 1fb8d0e0-3db7-4ff7-bb9c-e0de659d9cdb
+      device_class: precipitation
+      unit_of_measurement: "mm"
+      # mm for OWM: https://github.com/home-assistant/core/blob/a3dd2b8ea9f3f73f54905be79be9da237b07cf55/homeassistant/components/openweathermap/sensor.py#L173
+      # Does not exist for NWS
+      state: "{{ owm_hourly_forecast.forecast[0].precipitation }}" # Not on NWS
+    - name: Weather precipitation probability
+      unique_id: 7a309f57-8c78-48b2-95ca-afc2be8ca840
       # Generic percentage, doesn't need special class
       unit_of_measurement: "%"
-      state: "{{ hourly_forecast.forecast[0].precipitation_probability }}"
-    - name: Current hourly weather humidity
+      state: "{{ nws_hourly_forecast.forecast[0].precipitation_probability }}"
+    - name: Weather humidity
+      unique_id: 95333407-5741-478e-af17-8ac19a2d9e51
       device_class: humidity
       unit_of_measurement: "%"
-      state: "{{ hourly_forecast.forecast[0].humidity }}"
-    - name: Current hourly weather pressure
+      state: "{{ owm_hourly_forecast.forecast[0].humidity }}"
+    - name: Weather pressure
+      unique_id: e7cf8f34-5abf-445d-b302-3320036d68aa
       device_class: pressure
-      unit_of_measurement: "mmHg" # I assume?
-      state: "{{ hourly_forecast.forecast[0].pressure }}"
-    - name: Current hourly weather cloud coverage
+      unit_of_measurement: "inHg"
+      # hPa for OWM: https://github.com/home-assistant/core/blob/dev/homeassistant/components/openweathermap/sensor.py#L114
+      # Although seems to be reporting in inHg instead...
+      # Pa for NWS: https://github.com/home-assistant/core/blob/dev/homeassistant/components/nws/sensor.py#L119
+      state: "{{ owm_hourly_forecast.forecast[0].pressure }}" # Not on NWS
+    - name: Weather cloud coverage
+      unique_id: 9771d25d-41bc-4bcf-9f59-946c9874d3a1
       # Generic percentage, doesn't need special class
       unit_of_measurement: "%"
-      state: "{{ hourly_forecast.forecast[0].cloud_coverage }}"
-    - name: Current hourly heat index
+      state: "{{ owm_hourly_forecast.forecast[0].cloud_coverage }}" # Not on NWS
+
+    # Based on current weather
+
+    - name: Weather heat index
+      unique_id: b3bce06f-5024-492c-a480-2ad601304ac4
       device_class: temperature
       unit_of_measurement: "°F"
       state: "{{ heat_index.heat_index }}"
-    - name: Current hourly target inside temperature
+    - name: Target inside temperature
+      unique_id: 9d8fd4c1-ba9c-4943-90ae-eeef0e901e1a
       device_class: temperature
       unit_of_measurement: "°F"
       state: "{{ target_temp.target_temp }}"
+
+    # Forecasts
+
+    - name: Weather hourly forecast
+      unique_id: 8496e6fb-6800-4fc0-ab36-c89733c6120b
+      device_class: timestamp
+      state: "{{ now() }}"
+      attributes:
+        forecast: "{{ nws_hourly_forecast.forecast }}" # change to NWS? Change below if so
+    - name: Weather twice daily forecast
+      device_class: timestamp
+      unique_id: 6b43e900-d9be-4a54-b5bb-d97e663696ee
+      state: "{{ now() }}"
+      attributes:
+        forecast: "{{ nws_twice_daily_forecast.forecast }}"
+    - name: Weather forecast time
+      state: >
+        {{ nws_hourly_forecast.forecast[0].datetime }}
+    - name: Weather forecast time day of week
+      state: >
+        {{ nws_hourly_forecast.forecast[0].datetime | as_timestamp() | timestamp_custom('%a') }}
+
+    # Today
+
+    - name: Weather temperature high
+      unique_id: eb27e890-5c5d-4101-9900-c7433893612a
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching the date of the first entry ("today")
+      state: >
+        {% set target_datetime = now() %}
+        {% set ns = namespace(high=-500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature > ns.high %}
+              {% set ns.high = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.high | float }}
+    - name: Weather temperature low
+      unique_id: 8048586c-4237-4bb3-b0eb-38627ca16f0d
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching the date of the first entry ("today")
+      state: >
+        {% set target_datetime = now() %}
+        {% set ns = namespace(low=500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature < ns.low %}
+              {% set ns.low = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.low | float }}
+
+    # Next 5 days of weather
+
+    - name: Weather temperature high day 1
+      unique_id: 0133a361-57dc-45bb-a45e-034c04c99b47
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today
+      state: >
+        {% set days = 0 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(high=-500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature > ns.high %}
+              {% set ns.high = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.high | float }}
+    - name: Weather temperature low day 1
+      unique_id: 5ecc4721-b21b-4ade-be55-cd0858b38043
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today
+      state: >
+        {% set days = 0 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(low=500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature < ns.low %}
+              {% set ns.low = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.low | float }}
+    - name: Weather condition day 1
+      unique_id: a91bdc2b-d90f-49bd-adf4-1decd2926400
+      state: >
+        {% set days = 0 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(condition="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {# Just grab the first available for today, don't worry about it being daytime #}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% set ns.condition = forecast.condition %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.condition }}
+    - name: Weather summary day 1
+      state: >
+        {% set days = 0 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(description="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {# Just grab the first available for today, don't worry about it being daytime #}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% set ns.description = forecast.detailed_description %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.description }}
+
+    - name: Weather temperature high day 2
+      unique_id: f3bf6cde-1b4d-4db5-865a-1fc5935360a2
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today + 1
+      state: >
+        {% set days = 1 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(high=-500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature > ns.high %}
+              {% set ns.high = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.high | float }}
+    - name: Weather temperature low day 2
+      unique_id: e732016f-12f9-4593-85d2-bbcf79a21bc0
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today + 1
+      state: >
+        {% set days = 1 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(low=500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature < ns.low %}
+              {% set ns.low = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.low | float }}
+    - name: Weather condition day 2
+      unique_id: 6aa0b3ed-f888-4155-974d-2fa27de347fa
+      state: >
+        {% set days = 1 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(condition="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
+            {% set ns.condition = forecast.condition %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.condition }}
+    - name: Weather summary day 2
+      state: >
+        {% set days = 1 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(description="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
+            {% set ns.description = forecast.detailed_description %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.description }}
+
+    - name: Weather temperature high day 3
+      unique_id: 6b71fe49-7ea5-4b4c-bde7-ca9ed938853a
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today + 2
+      state: >
+        {% set days = 2 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(high=-500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature > ns.high %}
+              {% set ns.high = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.high | float }}
+    - name: Weather temperature low day 3
+      unique_id: 0876ba16-633d-456a-bcc3-55bd1c661034
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today + 2
+      state: >
+        {% set days = 2 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(low=500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature < ns.low %}
+              {% set ns.low = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.low | float }}
+    - name: Weather condition day 3
+      unique_id: 2babada3-476a-49de-9651-0151d6085d6b
+      state: >
+        {% set days = 2 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(condition="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
+            {% set ns.condition = forecast.condition %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.condition }}
+    - name: Weather summary day 3
+      state: >
+        {% set days = 2 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(description="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
+            {% set ns.description = forecast.detailed_description %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.description }}
+
+    - name: Weather temperature high day 4
+      unique_id: 2b73290d-e27f-4769-aee3-7c8e6d0bc444
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today + 3
+      state: >
+        {% set days = 3 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(high=-500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature > ns.high %}
+              {% set ns.high = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.high | float }}
+    - name: Weather temperature low day 4
+      unique_id: 0872e3a2-ce75-434a-86f4-8fc980b1d011
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today + 3
+      state: >
+        {% set days = 3 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(low=500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature < ns.low %}
+              {% set ns.low = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.low | float }}
+    - name: Weather condition day 4
+      unique_id: ea5c7f87-9add-4c50-9015-8b3fe06d7073
+      state: >
+        {% set days = 3 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(condition="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
+            {% set ns.condition = forecast.condition %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.condition }}
+    - name: Weather summary day 4
+      state: >
+        {% set days = 3 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(description="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
+            {% set ns.description = forecast.detailed_description %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.description }}
+
+    - name: Weather temperature high day 5
+      unique_id: 22bb30e5-4a4f-458d-be6b-a7902e098e7c
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today + 4
+      state: >
+        {% set days = 4 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(high=-500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature > ns.high %}
+              {% set ns.high = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.high | float }}
+    - name: Weather temperature low day 5
+      unique_id: c824c27f-8624-4de7-9672-d9240370c82f
+      device_class: temperature
+      unit_of_measurement: "°F"
+      # Parse through all temperatures for all entries matching today + 4
+      state: >
+        {% set days = 4 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(low=500) %}
+        {% for forecast in nws_hourly_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() %}
+            {% if forecast.temperature < ns.low %}
+              {% set ns.low = forecast.temperature %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.low | float }}
+    - name: Weather condition day 5
+      unique_id: f490653c-479f-46f0-9821-876d225fa12f
+      state: >
+        {% set days = 4 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(condition="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
+            {% set ns.condition = forecast.condition %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.condition }}
+    - name: Weather summary day 5
+      state: >
+        {% set days = 4 %}
+        {% set target_datetime = now() %}
+        {% set target_datetime = target_datetime + timedelta(days=days) %}
+        {% set ns = namespace(description="") %}
+        {% for forecast in nws_twice_daily_forecast.forecast %}
+          {% set forecast_datetime = forecast.datetime | as_datetime %}
+          {% if forecast_datetime.date() == target_datetime.date() and forecast.is_daytime == true %}
+            {% set ns.description = forecast.detailed_description %}
+            {# Exit the loop after we grab the first entry for the target day #}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.description }}
+
+  weather:
+    # ref: https://www.home-assistant.io/integrations/weather.template/
+    # ref: https://www.home-assistant.io/integrations/template/#weather
+    # ref: https://developers.home-assistant.io/docs/core/entity/weather/#unit-conversion
+    - name: Weather
+      unique_id: 46bce95a-90e7-11ee-b9d1-0242ac120002
+      condition_template: "{{ owm_hourly_forecast.forecast[0].condition }}"
+      temperature_template: "{{ owm_hourly_forecast.forecast[0].temperature }}"
+      dew_point_template: "{{ nws_twice_daily_forecast.forecast[0].dew_point }}"
+      apparent_temperature_template: "{{ heat_index.heat_index }}"
+      temperature_unit: "°F" # See notes at beginning of "sensor" section above
+      humidity_template: "{{ owm_hourly_forecast.forecast[0].humidity }}"
+      pressure_template: "{{ owm_hourly_forecast.forecast[0].pressure }}"
+      pressure_unit: "inHg" # Make sure this matches the pressure unit in "sensor" section above
+      wind_speed_template: "{{ owm_hourly_forecast.forecast[0].wind_speed }}"
+      wind_speed_unit: "m/s" # Make sure this matches the wind speed unit in "sensor" section above
+      cloud_coverage_template: "{{ owm_hourly_forecast.forecast[0].cloud_coverage }}"
+      forecast_template: "{{ nws_hourly_forecast.forecast }}" # Will be removed in 2024.3
+      forecast_daily_template: "{{ nws_twice_daily_forecast.forecast }}" # Will be removed in 2024.3
+      forecast_hourly_template: "{{ owm_hourly_forecast.forecast }}" # Will be removed in 2024.3
+      forecast_twice_daily_template: "{{ nws_twice_daily_forecast.forecast }}" # Will be removed in 2024.3
+      precipitation_unit: "mm" # Make sure this matches the precipitation unit in "sensor" section above
