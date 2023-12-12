@@ -10,3 +10,19 @@ zha:
       salus_provider: true
       sonoff_provider: true
       thirdreality_provider: true
+  device_config:
+    # Turn "light" of VZM35SN to a generic "switch" (endpoint 1)
+    04:87:27:ff:fe:19:12:8a-1: # First Floor Bathroom Fan Switch
+      type: "switch"
+    04:87:27:ff:fe:18:bb:f7-1: # Guest Bathroom Fan Switch
+      type: "switch"
+    04:87:27:ff:fe:18:b7:a1-1: # Guest Bedroom Fan Switch
+      type: "switch"
+    04:87:27:ff:fe:1b:98:ee-1: # Living Room Fan Switch
+      type: "switch"
+    04:87:27:ff:fe:1b:f8:48-1: # Master Bathroom Fan Switch
+      type: "switch"
+    04:87:27:ff:fe:1c:02:d5-1: # Master Bedroom Fan Switch
+      type: "switch"
+    04:87:27:ff:fe:18:b9:aa-1: # Office Fan Switch
+      type: "switch"
