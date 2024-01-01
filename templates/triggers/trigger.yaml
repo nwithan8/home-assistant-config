@@ -24,7 +24,7 @@
       data:
         type: hourly
       target:
-        entity_id: 
+        entity_id:
           - weather.openweathermap
           - weather.kbjc_hourly
       response_variable: hourly_forecast
@@ -36,8 +36,38 @@
       response_variable: twice_daily_forecast
     - service: script.1696374658541
       data:
-        temperature: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].temperature }}"
-        humidity: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].humidity }}"
+        temperature: >
+          {% set property = 'temperature' %}
+          {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+          {% set ns = namespace(value="Unavailable") %}
+          {% for name in sources if name in hourly_forecast %}
+          {% set forecasts = hourly_forecast[name].forecast %}
+          {% if not forecasts %}
+          {% continue %}
+          {% endif %}
+          {% set forecast = forecasts[0] %}
+          {% if property in forecast %}
+          {% set ns.value = forecast[property] %}
+          {% endif %}
+          {% break %}
+          {% endfor %}
+          {{ ns.value }}
+        humidity: >
+          {% set property = 'humidity' %}
+          {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+          {% set ns = namespace(value="Unavailable") %}
+          {% for name in sources if name in hourly_forecast %}
+          {% set forecasts = hourly_forecast[name].forecast %}
+          {% if not forecasts %}
+          {% continue %}
+          {% endif %}
+          {% set forecast = forecasts[0] %}
+          {% if property in forecast %}
+          {% set ns.value = forecast[property] %}
+          {% endif %}
+          {% break %}
+          {% endfor %}
+          {{ ns.value }}
       response_variable: heat_index
     - service: script.calculate_target_inside_temperature
       data:
@@ -61,33 +91,114 @@
     - name: Weather condition
       unique_id: 29d79c51-8dbb-4a2c-82d3-28a5f74f5313
       # Generic text, doesn't need special class or units
-      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].condition }}"
+      state: >
+        {% set property = 'condition' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
+
     - name: Weather description
       unique_id: a0130181-cc31-4c95-8c0a-a084e42f652b
       # Generic text, doesn't need special class or units
       state: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast[0].detailed_description }}" # Not on NWS Hourly
+
     - name: Weather temperature
       unique_id: 05248cc1-9386-4d35-bc4c-536125dbc60c
       device_class: temperature
       unit_of_measurement: "°F"
-      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].temperature }}"
+      state: >
+        {% set property = 'temperature' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
+
     - name: Weather dew point
       unique_id: 36573a2e-c516-43e4-8848-75e26d44089b
       device_class: temperature
       unit_of_measurement: "°F"
-      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].dew_point }}"
+      state: >
+        {% set property = 'dew_point' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
+
     - name: Weather wind bearing
       unique_id: 2f4837de-67c6-4098-baae-22e1900ed561
       # Generic angle, doesn't need special class or units
       unit_of_measurement: "°"
-      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].wind_bearing }}"
+      state: >
+        {% set property = 'wind_bearing' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
+
     - name: Weather wind speed
       unique_id: b9df4cd2-1176-48aa-b2f9-665ce79990ff
       device_class: speed
       unit_of_measurement: "m/s"
       # m/s for OWM: https://github.com/home-assistant/core/blob/dev/homeassistant/components/openweathermap/sensor.py#L211
       # kph for NWS: https://github.com/home-assistant/core/blob/dev/homeassistant/components/nws/sensor.py#L95
-      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].wind_speed }}"
+      state: >
+        {% set property = 'wind_speed' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
+
     - name: Weather precipitation
       unique_id: 1fb8d0e0-3db7-4ff7-bb9c-e0de659d9cdb
       device_class: precipitation
@@ -95,16 +206,49 @@
       # mm for OWM: https://github.com/home-assistant/core/blob/a3dd2b8ea9f3f73f54905be79be9da237b07cf55/homeassistant/components/openweathermap/sensor.py#L173
       # Does not exist for NWS
       state: "{{ hourly_forecast['weather.openweathermap'].forecast[0].precipitation }}" # Not on NWS
+
     - name: Weather precipitation probability
       unique_id: 7a309f57-8c78-48b2-95ca-afc2be8ca840
       # Generic percentage, doesn't need special class
       unit_of_measurement: "%"
-      state: "{{ hourly_forecast['weather.kbjc_hourly'].forecast[0].precipitation_probability }}"
+      state: >
+        {% set property = 'precipitation_probability' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
+
     - name: Weather humidity
       unique_id: 95333407-5741-478e-af17-8ac19a2d9e51
       device_class: humidity
       unit_of_measurement: "%"
-      state: "{{ hourly_forecast['weather.openweathermap'].forecast[0].humidity }}"
+      state: >
+        {% set property = 'humidity' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
+
     - name: Weather pressure
       unique_id: e7cf8f34-5abf-445d-b302-3320036d68aa
       device_class: pressure
@@ -113,6 +257,7 @@
       # Although seems to be reporting in inHg instead...
       # Pa for NWS: https://github.com/home-assistant/core/blob/dev/homeassistant/components/nws/sensor.py#L119
       state: "{{ hourly_forecast['weather.openweathermap'].forecast[0].pressure }}" # Not on NWS
+
     - name: Weather cloud coverage
       unique_id: 9771d25d-41bc-4bcf-9f59-946c9874d3a1
       # Generic percentage, doesn't need special class
@@ -126,6 +271,7 @@
       device_class: temperature
       unit_of_measurement: "°F"
       state: "{{ heat_index.heat_index }}"
+
     - name: Target inside temperature
       unique_id: 9d8fd4c1-ba9c-4943-90ae-eeef0e901e1a
       device_class: temperature
@@ -134,24 +280,25 @@
 
     # Forecasts
 
-    - name: Weather hourly forecast
-      unique_id: 8496e6fb-6800-4fc0-ab36-c89733c6120b
-      device_class: timestamp
-      state: "{{ now() }}"
-      attributes:
-        forecast: "{{ hourly_forecast['weather.kbjc_hourly'].forecast }}" # change to NWS? Change below if so
-    - name: Weather twice daily forecast
-      device_class: timestamp
-      unique_id: 6b43e900-d9be-4a54-b5bb-d97e663696ee
-      state: "{{ now() }}"
-      attributes:
-        forecast: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}"
+    #- name: Weather hourly forecast
+    #  unique_id: 8496e6fb-6800-4fc0-ab36-c89733c6120b
+    #  device_class: timestamp
+    #  state: "{{ now() }}"
+    #  attributes:
+    #    forecast: "{{ hourly_forecast['weather.kbjc_hourly'].forecast }}" # change to NWS? Change below if so
+    # - name: Weather twice daily forecast
+    #  device_class: timestamp
+    #  unique_id: 6b43e900-d9be-4a54-b5bb-d97e663696ee
+    #  state: "{{ now() }}"
+    #  attributes:
+    #    forecast: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}"
     - name: Weather forecast time
       state: >
-        {{ hourly_forecast['weather.kbjc_hourly'].forecast[0].datetime }}
+        {{ hourly_forecast['weather.openweathermap'].forecast[0].datetime }}
+
     - name: Weather forecast time day of week
       state: >
-        {{ hourly_forecast['weather.kbjc_hourly'].forecast[0].datetime | as_timestamp() | timestamp_custom('%a') }}
+        {{ hourly_forecast['weather.openweathermap'].forecast[0].datetime | as_timestamp() | timestamp_custom('%a') }}
 
     # Today
 
@@ -163,7 +310,7 @@
       state: >
         {% set target_datetime = now() %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -172,6 +319,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.high | float }}
+
     - name: Weather temperature low
       unique_id: 8048586c-4237-4bb3-b0eb-38627ca16f0d
       device_class: temperature
@@ -180,7 +328,7 @@
       state: >
         {% set target_datetime = now() %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -202,7 +350,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -211,6 +359,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.high | float }}
+
     - name: Weather temperature low day 1
       unique_id: 5ecc4721-b21b-4ade-be55-cd0858b38043
       device_class: temperature
@@ -221,7 +370,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -230,6 +379,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.low | float }}
+
     - name: Weather condition day 1
       unique_id: a91bdc2b-d90f-49bd-adf4-1decd2926400
       state: >
@@ -247,6 +397,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.condition }}
+
     - name: Weather summary day 1
       state: >
         {% set days = 0 %}
@@ -274,7 +425,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -283,6 +434,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.high | float }}
+
     - name: Weather temperature low day 2
       unique_id: e732016f-12f9-4593-85d2-bbcf79a21bc0
       device_class: temperature
@@ -293,7 +445,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -302,6 +454,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.low | float }}
+
     - name: Weather condition day 2
       unique_id: 6aa0b3ed-f888-4155-974d-2fa27de347fa
       state: >
@@ -318,6 +471,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.condition }}
+
     - name: Weather summary day 2
       state: >
         {% set days = 1 %}
@@ -344,7 +498,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -353,6 +507,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.high | float }}
+
     - name: Weather temperature low day 3
       unique_id: 0876ba16-633d-456a-bcc3-55bd1c661034
       device_class: temperature
@@ -363,7 +518,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -372,6 +527,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.low | float }}
+
     - name: Weather condition day 3
       unique_id: 2babada3-476a-49de-9651-0151d6085d6b
       state: >
@@ -388,6 +544,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.condition }}
+
     - name: Weather summary day 3
       state: >
         {% set days = 2 %}
@@ -414,7 +571,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -423,6 +580,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.high | float }}
+
     - name: Weather temperature low day 4
       unique_id: 0872e3a2-ce75-434a-86f4-8fc980b1d011
       device_class: temperature
@@ -433,7 +591,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -442,6 +600,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.low | float }}
+
     - name: Weather condition day 4
       unique_id: ea5c7f87-9add-4c50-9015-8b3fe06d7073
       state: >
@@ -458,6 +617,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.condition }}
+
     - name: Weather summary day 4
       state: >
         {% set days = 3 %}
@@ -484,7 +644,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(high=-500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature > ns.high %}
@@ -493,6 +653,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.high | float }}
+
     - name: Weather temperature low day 5
       unique_id: c824c27f-8624-4de7-9672-d9240370c82f
       device_class: temperature
@@ -503,7 +664,7 @@
         {% set target_datetime = now() %}
         {% set target_datetime = target_datetime + timedelta(days=days) %}
         {% set ns = namespace(low=500) %}
-        {% for forecast in hourly_forecast['weather.kbjc_hourly'].forecast %}
+        {% for forecast in hourly_forecast['weather.openweathermap'].forecast %}
           {% set forecast_datetime = forecast.datetime | as_datetime %}
           {% if forecast_datetime.date() == target_datetime.date() %}
             {% if forecast.temperature < ns.low %}
@@ -512,6 +673,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.low | float }}
+
     - name: Weather condition day 5
       unique_id: f490653c-479f-46f0-9821-876d225fa12f
       state: >
@@ -528,6 +690,7 @@
           {% endif %}
         {% endfor %}
         {{ ns.condition }}
+
     - name: Weather summary day 5
       state: >
         {% set days = 4 %}
@@ -550,19 +713,103 @@
     # ref: https://developers.home-assistant.io/docs/core/entity/weather/#unit-conversion
     - name: Weather
       unique_id: 46bce95a-90e7-11ee-b9d1-0242ac120002
-      condition_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].condition }}"
-      temperature_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].temperature }}"
+      condition_template: >
+        {% set property = 'condition' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
+      temperature_template: >
+        {% set property = 'temperature' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
       dew_point_template: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast[0].dew_point }}"
       apparent_temperature_template: "{{ heat_index.heat_index }}"
       temperature_unit: "°F" # See notes at beginning of "sensor" section above
-      humidity_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].humidity }}"
+      humidity_template: >
+        {% set property = 'humidity' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
       pressure_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].pressure }}"
       pressure_unit: "inHg" # Make sure this matches the pressure unit in "sensor" section above
-      wind_speed_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].wind_speed }}"
+      wind_speed_template: >
+        {% set property = 'wind_speed' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set forecast = forecasts[0] %}
+        {% if property in forecast %}
+        {% set ns.value = forecast[property] %}
+        {% endif %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
       wind_speed_unit: "m/s" # Make sure this matches the wind speed unit in "sensor" section above
       cloud_coverage_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].cloud_coverage }}"
-      forecast_template: "{{ hourly_forecast['weather.kbjc_hourly'].forecast }}" # Will be removed in 2024.3
+      forecast_template: >  # Will be removed in 2024.3
+        {% set property = 'temperature' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set ns.value = forecasts %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
       forecast_daily_template: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}" # Will be removed in 2024.3
-      forecast_hourly_template: "{{ hourly_forecast['weather.openweathermap'].forecast }}" # Will be removed in 2024.3
+      forecast_hourly_template: >  # Will be removed in 2024.3
+        {% set property = 'temperature' %}
+        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
+        {% set ns = namespace(value="Unavailable") %}
+        {% for name in sources if name in hourly_forecast %}
+        {% set forecasts = hourly_forecast[name].forecast %}
+        {% if not forecasts %}
+        {% continue %}
+        {% endif %}
+        {% set ns.value = forecasts %}
+        {% break %}
+        {% endfor %}
+        {{ ns.value }}
       forecast_twice_daily_template: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}" # Will be removed in 2024.3
       precipitation_unit: "mm" # Make sure this matches the precipitation unit in "sensor" section above
