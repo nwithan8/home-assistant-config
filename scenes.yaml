@@ -2,19 +2,15 @@
   name: Friday Night Game Night
   entities:
     light.office_lamp:
+      supported_color_modes:
+      - color_temp
+      icon: phu:ikea-paparlamp
+      friendly_name: Office Lamp
+      supported_features: 40
       min_color_temp_kelvin: 2202
       max_color_temp_kelvin: 4000
       min_mireds: 250
       max_mireds: 454
-      supported_color_modes:
-      - color_temp
-      color_mode:
-      brightness:
-      color_temp_kelvin:
-      color_temp:
-      hs_color:
-      rgb_color:
-      xy_color:
       entity_id:
       - light.office_lamp_bulb_6_light
       - light.office_lamp_bulb_5_light
@@ -22,23 +18,7 @@
       - light.office_lamp_bulb_3_light
       - light.office_lamp_bulb_2_light
       - light.office_lamp_bulb_1_light
-      icon: phu:ikea-paparlamp
-      friendly_name: Office Lamp
-      supported_features: 40
       state: 'off'
-    light.office_light_strip:
-      supported_color_modes:
-      - rgb
-      icon: mdi:led-strip-variant
-      friendly_name: Office Light Strip
-      supported_features: 0
-      entity_id:
-      - light.office_light_strip_bottom
-      - light.office_light_strip_top_left
-      - light.office_light_strip_top_right
-      state: unknown
   metadata:
     light.office_lamp:
-      entity_only: true
-    light.office_light_strip:
       entity_only: true
