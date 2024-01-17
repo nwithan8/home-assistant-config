@@ -8,6 +8,16 @@
       device_class: timestamp
       state: "{{ now() }}"
 
+# Note when the cat food drawer was last opened
+- trigger:
+    - platform: state
+      entity_id: binary_sensor.cat_drawer_sensor_state
+      to: "on"
+  sensor:
+    - name: Cat food drawer last opened
+      device_class: timestamp
+      state: "{{ now() }}"
+
 # Update weather every five minutes
 - trigger:
     # ref: https://www.home-assistant.io/integrations/template#trigger-based-template-binary-sensors-buttons-images-numbers-selects-and-sensors

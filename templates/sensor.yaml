@@ -1,4 +1,16 @@
 - sensor:
+    - name: "Cats Were Fed Breakfast"
+      unique_id: "cats_were_fed_breakfast"
+      state: >
+        {% set last_time_str = states('sensor.cat_food_drawer_last_opened') %}
+        {% if last_time_str == "unknown" %}
+          False
+        {% else %}
+          {% set last_time_local_str = strptime(last_time_str, "%Y-%m-%dT%H:%M:%S%z").timestamp() | timestamp_local %}
+          {% set last_time = strptime(last_time_local_str, "%Y-%m-%dT%H:%M:%S%z") %}
+          {{ last_time.hour >= 0 and last_time.hour < 5 and last_time.date() == now().date() }}
+        {% endif %}
+
     - name: "Everyone Home"
       state: >
         {{ is_state('person.nate', 'home') and is_state('person.lexi', 'home') }}
