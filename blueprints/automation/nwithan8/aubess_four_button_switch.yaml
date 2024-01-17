@@ -1,0 +1,171 @@
+# Instructions:
+
+blueprint:
+  name: AUBESS 4-Button Switch (ZHA)
+
+  description: >-
+    This automation allows using an AUBESS four-button wireless switch (ZigBee) to trigger actions.
+
+  domain: automation
+
+  input:
+    remote:
+      name: AUBESS four-button switch
+      description: Select the switch you wish to use
+      selector:
+        device:
+          integration: zha
+          model: TS0044
+    button_1_short:
+      name: Button 1 - Short Press
+      description: The action to perform on a short press on Button 1
+      selector:
+        action:
+      default: []
+    button_1_long:
+      name: Button 1 - Long Press
+      description: The action to perform on a long press on Button 1
+      selector:
+        action:
+      default: []
+    button_1_double:
+      name: Button 1 - Double Press
+      description: The action to perform on a double press on Button 1
+      selector:
+        action:
+      default: []
+    button_2_short:
+      name: Button 2 - Short Press
+      description: The action to perform on a short press on Button 2
+      selector:
+        action:
+      default: []
+    button_2_long:
+      name: Button 2 - Long Press
+      description: The action to perform on a long press on Button 2
+      selector:
+        action:
+      default: []
+    button_2_double:
+      name: Button 2 - Double Press
+      description: The action to perform on a double press on Button 2
+      selector:
+        action:
+      default: []
+    button_3_short:
+      name: Button 3 - Short Press
+      description: The action to perform on a short press on Button 3
+      selector:
+        action:
+      default: []
+    button_3_long:
+      name: Button 3 - Long Press
+      description: The action to perform on a long press on Button 3
+      selector:
+        action:
+      default: []
+    button_3_double:
+      name: Button 3 - Double Press
+      description: The action to perform on a double press on Button 3
+      selector:
+        action:
+      default: []
+    button_4_short:
+      name: Button 4 - Short Press
+      description: The action to perform on a short press on Button 4
+      selector:
+        action:
+      default: []
+    button_4_long:
+      name: Button 4 - Long Press
+      description: The action to perform on a long press on Button 4
+      selector:
+        action:
+      default: []
+    button_4_double:
+      name: Button 4 - Double Press
+      description: The action to perform on a double press on Button 4
+      selector:
+        action:
+      default: []
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+
+action:
+  - choose:
+      # Short press
+      - conditions:
+          - condition: template
+            value_template: '{{ trigger.event.data.command == "remote_button_short_press" }}'
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 1 }}"
+                sequence: !input button_1_short
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 2 }}"
+                sequence: !input button_2_short
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 3 }}"
+                sequence: !input button_3_short
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 4 }}"
+                sequence: !input button_4_short
+      # Long press
+      - conditions:
+          - condition: template
+            value_template: '{{ trigger.event.data.command == "remote_button_long_press" }}'
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 1 }}"
+                sequence: !input button_1_long
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 2 }}"
+                sequence: !input button_2_long
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 3 }}"
+                sequence: !input button_3_long
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 4 }}"
+                sequence: !input button_4_long
+      # Double press
+      - conditions:
+          - condition: template
+            value_template: '{{ trigger.event.data.command == "remote_button_double_press" }}'
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 1 }}"
+                sequence: !input button_1_double
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 2 }}"
+                sequence: !input button_2_double
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 3 }}"
+                sequence: !input button_3_double
+              - conditions:
+                  - condition: template
+                    value_template: "{{ trigger.event.data.endpoint_id == 4 }}"
+                sequence: !input button_4_double
+
+    # Any other event will cancel the repeat loops.
+    default: []

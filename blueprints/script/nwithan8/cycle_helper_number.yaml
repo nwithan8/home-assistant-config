@@ -1,0 +1,54 @@
+# Credit: https://gist.github.com/mdolnik/7147b5df4b08f7979afad02a5dd137a2
+# Credit: https://community.home-assistant.io/t/trying-to-cycle-through-colors-on-a-hue-bulb-each-time-a-button-is-pressed/493249/3
+
+blueprint:
+  name: Cycle helper number
+  description: >-
+    A script that increments or decrements the number on a number helper.
+  domain: script
+
+# Only single, otherwise could flood with attempts
+mode: single
+
+fields:
+  helper:
+    name: Number helper
+    description: Number helper to modify
+    required: true
+    selector:
+      entity:
+        domain: input_number
+        multiple: false
+  decrement:
+    name: Decrement
+    description: Decrement rather than increment
+    required: true
+    selector:
+      boolean:
+
+variables:
+  current_value: "{{ states(helper) | int }}"
+  min_value: "{{ state_attr(helper, 'min') | int }}"
+  max_value: "{{ state_attr(helper, 'max') | int }}"
+  next_value: >
+    {% set ns = namespace(val=current_value) %}
+    {% if decrement %}
+      {% set ns.val = current_value - 1 %}
+    {% else %}
+      {% set ns.val = current_value + 1 %}
+    {% endif %}
+    {% if ns.val < min_value %}
+      {% set ns.val = max_value %}
+    {% endif %}
+    {% if ns.val > max_value %}
+      {% set ns.val = min_value %}
+    {% endif %}
+    {{ ns.val | int }}
+
+sequence:
+  - service: input_number.set_value
+    target:
+      entity_id: "{{ helper }}"
+    data:
+      value: "{{ next_value | int }}"
+    alias: Update value

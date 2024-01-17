@@ -1,0 +1,81 @@
+# Instructions:
+
+blueprint:
+  name: IKEA RODRET - Remote (ZHA)
+
+  description: >-
+    This automation allows using an IKEA RODRET wireless dimmer (ZigBee) to trigger actions.
+
+  domain: automation
+
+  input:
+    remote:
+      name: IKEA RODRET wireless dimmer
+      description: Select the remote you wish to use
+      selector:
+        device:
+          integration: zha
+          manufacturer: IKEA of Sweden
+          model: RODRET Dimmer
+    single_up:
+      name: Single Press Up
+      description: The action to perform on a single press up
+      selector:
+        action:
+      default: []
+    hold_up:
+      name: Hold Up
+      description: The action to perform on a hold up
+      selector:
+        action:
+      default: []
+    single_down:
+      name: Single Press Down
+      description: The action to perform on a single press down
+      selector:
+        action:
+      default: []
+    hold_down:
+      name: Hold Down
+      description: The action to perform on a hold down
+      selector:
+        action:
+      default: []
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: event
+    event_type: zha_event
+    event_data:
+      device_id: !input remote
+
+action:
+  - choose:
+      # Single press up
+      - conditions:
+          - condition: template
+            value_template: '{{ trigger.event.data.command == "on" }}'
+        sequence: !input single_up
+
+      # Hold up
+      - conditions:
+          - condition: template
+            value_template: '{{ trigger.event.data.command == "move_with_on_off" }}'
+        sequence: !input hold_up
+
+      # Single press down
+      - conditions:
+          - condition: template
+            value_template: '{{ trigger.event.data.command == "off" }}'
+        sequence: !input single_down
+
+      # Hold down
+      - conditions:
+          - condition: template
+            value_template: '{{ trigger.event.data.command == "move" }}'
+        sequence: !input hold_down
+
+    # Any other event will cancel the repeat loops.
+    default: []

@@ -1,18 +1,18 @@
 blueprint:
-  name: Controller - IKEA E1744 SYMFONISK Rotary Remote
-  description: "# Controller - IKEA E1744 SYMFONISK Rotary Remote\n\nController automation
-    for executing any kind of action triggered by the provided IKEA E1744 SYMFONISK
-    Rotary Remote. Allows to optionally loop a custom action during controller rotation.\nSupports
-    deCONZ, ZHA, Zigbee2MQTT.\n\nAutomations created with this blueprint can be connected
-    with one or more [Hooks](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/hooks)
+  name: Controller - IKEA ICTC-G-1 TRÅDFRI wireless dimmer
+  description: "# Controller - IKEA ICTC-G-1 TRÅDFRI wireless dimmer\n\nController
+    automation for executing any kind of action triggered by the provided IKEA ICTC-G-1
+    TRÅDFRI wireless dimmer. Allows to optionally loop a custom action during controller
+    rotation.\nSupports deCONZ, ZHA, Zigbee2MQTT.\n\nAutomations created with this
+    blueprint can be connected with one or more [Hooks](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/hooks)
     supported by this controller.\nHooks allow to easily create controller-based automations
     for interacting with media players, lights, covers and more.\nSee the list of
-    [Hooks available for this controller](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/controllers/ikea_e1744#available-hooks)
+    [Hooks available for this controller](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/controllers/ikea_ictc_g_1#available-hooks)
     for additional details.\n\n\U0001F4D5 Full documentation regarding this blueprint
-    is available [here](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/controllers/ikea_e1744).\n\n\U0001F680
+    is available [here](https://epmatt.github.io/awesome-ha-blueprints/docs/blueprints/controllers/ikea_ictc_g_1).\n\n\U0001F680
     This blueprint is part of the **[Awesome HA Blueprints](https://epmatt.github.io/awesome-ha-blueprints)
     project**.\n\nℹ️ Version 2022.08.08\n"
-  source_url: https://github.com/EPMatt/awesome-ha-blueprints/blob/main/blueprints/controllers/ikea_e1744/ikea_e1744.yaml
+  source_url: https://github.com/EPMatt/awesome-ha-blueprints/blob/main/blueprints/controllers/ikea_ictc_g_1/ikea_ictc_g_1.yaml
   domain: automation
   input:
     integration:
@@ -80,24 +80,6 @@ blueprint:
       default: []
       selector:
         action: {}
-    action_click_short:
-      name: (Optional) Remote short press
-      description: Action to run on short remote press.
-      default: []
-      selector:
-        action: {}
-    action_click_double:
-      name: (Optional) Remote double press
-      description: Action to run on double remote press.
-      default: []
-      selector:
-        action: {}
-    action_click_triple:
-      name: (Optional) Remote triple press
-      description: Action to run on triple remote press.
-      default: []
-      selector:
-        action: {}
     rotate_left_loop:
       name: (Optional) Rotate left - loop until stop
       description: Loop the rotate left action until the rotation is stopped.
@@ -161,31 +143,19 @@ variables:
   actions_mapping:
     deconz:
       rotate_left:
-      - '3001'
-      rotate_stop:
-      - '3003'
-      - '2003'
+      - '3002'
+      rotate_stop: []
       rotate_right:
-      - '2001'
-      click_short:
-      - '1002'
-      click_double:
-      - '1004'
-      click_triple:
-      - '1005'
+      - '2002'
     zha:
       rotate_left:
+      - move_1_70
       - move_1_195
       rotate_stop:
       - stop
       rotate_right:
-      - move_0_195
-      click_short:
-      - toggle
-      click_double:
-      - step_0_1_0
-      click_triple:
-      - step_1_1_0
+      - move_with_on_off_0_70
+      - move_with_on_off_0_195
     zigbee2mqtt:
       rotate_left:
       - brightness_move_down
@@ -193,18 +163,9 @@ variables:
       - brightness_stop
       rotate_right:
       - brightness_move_up
-      click_short:
-      - toggle
-      click_double:
-      - brightness_step_up
-      click_triple:
-      - brightness_step_down
   rotate_left: '{{ actions_mapping[integration_id]["rotate_left"] }}'
   rotate_stop: '{{ actions_mapping[integration_id]["rotate_stop"] }}'
   rotate_right: '{{ actions_mapping[integration_id]["rotate_right"] }}'
-  click_short: '{{ actions_mapping[integration_id]["click_short"] }}'
-  click_double: '{{ actions_mapping[integration_id]["click_double"] }}'
-  click_triple: '{{ actions_mapping[integration_id]["click_triple"] }}'
   controller_entity: !input controller_entity
   controller_device: !input controller_device
   controller_id: '{% if integration_id=="zigbee2mqtt" %}{{controller_entity}}{% else
@@ -300,30 +261,3 @@ action:
     - choose:
       - conditions: []
         sequence: !input action_rotate_right_stop
-  - conditions: '{{ trigger_action | string in click_short }}'
-    sequence:
-    - event: ahb_controller_event
-      event_data:
-        controller: '{{ controller_id }}'
-        action: click_short
-    - choose:
-      - conditions: []
-        sequence: !input action_click_short
-  - conditions: '{{ trigger_action | string in click_double }}'
-    sequence:
-    - event: ahb_controller_event
-      event_data:
-        controller: '{{ controller_id }}'
-        action: click_double
-    - choose:
-      - conditions: []
-        sequence: !input action_click_double
-  - conditions: '{{ trigger_action | string in click_triple }}'
-    sequence:
-    - event: ahb_controller_event
-      event_data:
-        controller: '{{ controller_id }}'
-        action: click_triple
-    - choose:
-      - conditions: []
-        sequence: !input action_click_triple
