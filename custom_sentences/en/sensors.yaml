@@ -1,0 +1,25 @@
+language: "en"
+intents:
+  HassGetState:
+    data:
+      - sentences:
+          - "[is] (anyone | any one | anybody | any body) home"
+        response: yes_true_explain
+        slots:
+          name: "Anyone Home"
+          domain: sensor
+          yes_explain: "at least one person is home"
+          no_explain: "no one is home"
+      - sentences:
+          - "[is] (no one | nobody | no body) home"
+        response: yes_false_explain
+        slots:
+          name: "Anyone Home"
+          domain: sensor
+          yes_explain: "no one is home"
+          no_explain: "at least one person is home"
+  CustomHaveCatsHadBreakfast:
+    data:
+      - sentences:
+          - "[did] [have] you (feed | fed) [the] (them | cats | cattos | catos | cat toes) [their] [breakfast] [food]"
+          - "(were | have | did) [the] (they | cats | cattos | catos | cat toes) [been] (fed | eat | eaten | gotten | get | have | had ) [their] [breakfast] [food]"

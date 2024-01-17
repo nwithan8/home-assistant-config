@@ -1,0 +1,135 @@
+intent_script:
+  CustomOpenGarageDoor:
+    action:
+      service: cover.open_cover
+      data:
+        entity_id: cover.garage_door_opener_door
+    speech:
+      text: Opening
+  CustomCloseGarageDoor:
+    action:
+      service: cover.close_cover
+      data:
+        entity_id: cover.garage_door_opener_door
+    speech:
+      text: Closing
+  CustomUnlockDoor:
+    action:
+      service: lock.unlock
+      target:
+        entity_id: "{{ door_entity }}"
+    speech:
+      text: Unlocking
+  CustomLockDoor:
+    action:
+      service: lock.lock
+      target:
+        entity_id: "{{ door_entity }}"
+    speech:
+      text: Locking
+  CustomOpenShadesNumber:
+    action:
+      service: cover.open_cover
+      target:
+        entity_id: |
+          {% set number = order %}
+          {% set covers = expand(area_entities(area_name)) | selectattr ( 'domain' , 'eq' , 'cover' ) | list %}
+          {% set ns = namespace(matching=[]) %}
+          {% for cover in covers %}
+          {% if number | string in cover.name %}
+            {% set ns.matching = ns.matching + [cover] %}
+          {% endif %}
+          {% endfor %}
+          {{ ns.matching | map(attribute="entity_id") | list | join(',') }}
+    speech:
+      text: Raising
+  CustomOpenShadesRange:
+    action:
+      service: cover.open_cover
+      target:
+        entity_id: |
+          {% set covers = expand(area_entities(area_name)) | selectattr ( 'domain' , 'eq' , 'cover' ) | list %}
+          {% set ns = namespace(matching=[]) %}
+          {% for num in range(1, number + 1) %}
+          {% for cover in covers %}
+          {% if num | string in cover.name %}
+            {% set ns.matching = ns.matching + [cover] %}
+          {% endif %}
+          {% endfor %}
+          {% endfor %}
+          {{ ns.matching | map(attribute="entity_id") | list | join(',') }}
+    speech:
+      text: Raising
+  CustomCloseShadesNumber:
+    action:
+      service: cover.close_cover
+      target:
+        entity_id: |
+          {% set number = order %}
+          {% set covers = expand(area_entities(area_name)) | selectattr ( 'domain' , 'eq' , 'cover' ) | list %}
+          {% set ns = namespace(matching=[]) %}
+          {% for cover in covers %}
+          {% if number | string in cover.name %}
+            {% set ns.matching = ns.matching + [cover] %}
+          {% endif %}
+          {% endfor %}
+          {{ ns.matching | map(attribute="entity_id") | list | join(',') }}
+    speech:
+      text: Lowering
+  CustomCloseShadesRange:
+    action:
+      service: cover.close_cover
+      target:
+        entity_id: |
+          {% set covers = expand(area_entities(area_name)) | selectattr ( 'domain' , 'eq' , 'cover' ) | list %}
+          {% set ns = namespace(matching=[]) %}
+          {% for num in range(1, number + 1) %}
+          {% for cover in covers %}
+          {% if num | string in cover.name %}
+            {% set ns.matching = ns.matching + [cover] %}
+          {% endif %}
+          {% endfor %}
+          {% endfor %}
+          {{ ns.matching | map(attribute="entity_id") | list | join(',') }}
+    speech:
+      text: Lowering
+  CustomWhoIsWhere:
+    speech:
+      text: |
+        {% set present = state_attr(zone_entity,'persons') %}
+        {% set names = expand(present) | map(attribute='name') | list %}
+        {% if names | length == 1 %}
+        {{ names[0] }}
+        {% elif names | length == 2 %}
+        {{ names[0] }} and {{ names[1] }}
+        {% else %}
+        {% set ns = namespace(words=[]) %}
+        {% for name in names %}
+          {% if loop.last %}
+            {% set ns.words = ns.words + ["and " + name] %}
+          {% else %}
+            {% set ns.words = ns.words + [name] %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.words | join(", ") }}
+        {% endif %}
+  CustomWhereIsPerson:
+    speech:
+      text: |
+        {% set person_name = state_attr(person_entity, "friendly_name") %}
+        {% set person_location = states(person_entity) %}
+        {{ person_name }} is {{ 'at ' if person_location not in ['home', 'away'] else '' }}{{ person_location }}
+  CustomHaveCatsHadBreakfast:
+    speech:
+      text: |
+        {% set state = states('sensor.cats_were_fed_breakfast') %}
+        {% if state == "True" %}
+          Yes, they have eaten.
+        {% elif state == "False" %}
+          No, they have not eaten.
+        {% else %}
+          Unsure, sensor unavailable.
+        {% endif %}
+  CustomWhatTimeIsIt:
+    speech:
+      text: It is {{ now().strftime("%H:%M") }}

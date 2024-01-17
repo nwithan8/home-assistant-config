@@ -1,0 +1,25 @@
+language: "en"
+intents:
+  CustomWhoIsWhere:
+    data:
+      - sentences:
+          - "( who is | whose | whos ) [(at | in)] [the] {zone_entity} [( area | zone )]"
+  CustomWhereIsPerson:
+    data:
+      - sentences:
+        - "(where is | wheres) {person_entity} [(right now | currently | at the moment | at this moment)]"
+lists:
+  zone_entity:
+    values:
+      - in: "home"
+        out: "zone.home"
+      - in: "(away | gone | not home)"
+        out: "zone.away"
+      - in: "gym"
+        out: "zone.gym"
+  person_entity:
+    values:
+      - in: "(nate | Nate)"
+        out: "person.nate"
+      - in: "(lexi | Lexi)"
+        out: "person.lexi"

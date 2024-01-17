@@ -1,0 +1,203 @@
+language: "en"
+responses:
+  intents:
+    HassGetState:
+      # Confirmed, these work, but getting a right slot details to find the entity for "state" might be difficult
+      yes_true: |
+        {% if state.state_with_unit == "True" %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      yes_true_explain: |
+        {% if state.state_with_unit == "True" %}
+          Yes, {{ slots.yes_explain }}
+        {% else %}
+          No, {{ slots.no_explain }}
+        {% endif %}
+      yes_false: |
+        {% if state.state_with_unit == "False" %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      yes_false_explain: |
+        {% if state.state_with_unit == "False" %}
+          Yes, {{ slots.yes_explain }}
+        {% else %}
+          No, {{ slots.no_explain }}
+        {% endif %}
+      yes_unknown: |
+        {% if state.state_with_unit == "Unknown" %}
+          Yes
+        {% else %}
+          No, {{ state.state_with_unit }}
+        {% endif %}
+      yes_unavailable: |
+        {% if state.state_with_unit = "Unavailable" %}
+          Yes
+        {% else %}
+          No, {{ state.state_with_unit }}
+        {% endif %}
+      number_more_than_zero: |
+        {% if state.state_with_unit | int > 0 %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      number_more_than_zero_explain: |
+        {% if state.state_with_unit | int > 0 %}
+          Yes, {{ slots.yes_explain }}
+        {% else %}
+          No, {{ state.state_with_unit }} {{ slots.no_explain }}
+        {% endif %}
+      count_more_than_zero: |
+        {% if query.matched %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      count_more_than_zero_explain: |
+        {% if query.matched %}
+          Yes, {{ slots.yes_explain }}
+        {% else %}
+          No, {{ slots.no_explain }}
+        {% endif %}
+      number_only_zero: |
+        {% if state.state_with_unit | int == 0 %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      number_only_zero_explain: |
+        {% if state.state_with_unit | int == 0 %}
+          Yes, {{ slots.yes_explain }}
+        {% else %}
+          No, {{ state.state_with_unit }} {{ slots.no_explain }}
+        {% endif %}
+      count_only_zero: |
+        {% if query.matched %}
+          No
+        {% else %}
+          Yes
+        {% endif %}
+      count_only_zero_explain: |
+        {% if query.matched %}
+          No, {{ slots.no_explain }}
+        {% else %}
+          Yes, {{ slots.yes_explain }}
+        {% endif %}
+      number_more_than_one: |
+        {% if state.state_with_unit | int > 1 %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      number_more_than_one_explain: |
+        {% if state.state_with_unit | int > 1 %}
+          Yes, {{ slots.yes_explain }}
+        {% else %}
+          No, {{ state.state_with_unit }} {{ slots.no_explain }}
+        {% endif %}
+      count_more_than_one: |
+        {% if query.matched %}
+          {% set match = query.matched | map(attribute="name") | sort | list %}
+          {% if match | length > 1 %}
+            Yes
+          {% else %}
+            No
+          {% endif %}
+        {% else %}
+          No
+        {% endif %}
+      count_more_than_one_explain: |
+        {% if query.matched %}
+          {% set match = query.matched | map(attribute="name") | sort | list %}
+          {% if match | length > 1 %}
+            Yes, {{ slots.yes_explain }}
+          {% else %}
+            No, {{ slots.no_explain }}
+          {% endif %}
+        {% else %}
+          No, {{ slots.no_explain }}
+        {% endif %}
+      number_only_one: |
+        {% if state.state_with_unit | int == 1 %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      number_only_one_explain: |
+        {% if state.state_with_unit | int == 1 %}
+          Yes, {{ slots.yes_explain }}
+        {% else %}
+          No, {{ state.state_with_unit }} {{ slots.no_explain }}
+        {% endif %}
+      count_only_one: |
+        {% if query.matched %}
+          {% set match = query.matched | map(attribute="name") | sort | list %}
+          {% if match | length == 1 %}
+            Yes
+          {% else %}
+            No
+          {% endif %}
+        {% else %}
+          No
+        {% endif %}
+      count_only_one_explain: |
+        {% if query.matched %}
+          {% set match = query.matched | map(attribute="name") | sort | list %}
+          {% if match | length == 1 %}
+            Yes, {{ slots.yes_explain }}
+          {% else %}
+            No, {{ slots.no_explain }}
+          {% endif %}
+        {% else %}
+          No, {{ slots.no_explain }}
+        {% endif %}
+      number_zero_or_one: |
+        {% if state.state_with_unit | int == 1 or state.state_with_unit | int == 0%}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      number_zero_or_one_explain: |
+        {% if state.state_with_unit | int == 1 or state.state_with_unit | int == 0%}
+          Yes, {{ slots.yes_explain }}
+        {% else %}
+          No, {{ state.state_with_unit }} {{ slots.no_explain }}
+        {% endif %}
+      count_zero_or_one: |
+        {% if query.matched %}
+          {% set match = query.matched | map(attribute="name") | sort | list %}
+          {% if match | length == 1 %}
+            Yes
+          {% else %}
+            No
+          {% endif %}
+        {% else %}
+          Yes
+        {% endif %}
+      count_zero_or_one_explain: |
+        {% if query.matched %}
+          {% set match = query.matched | map(attribute="name") | sort | list %}
+          {% if match | length == 1 %}
+            Yes, {{ slots.yes_explain }}
+          {% else %}
+            No, {{ slots.no_explain }}
+          {% endif %}
+        {% else %}
+          Yes, {{ slots.yes_explain }}
+        {% endif %}
+      trash_schedule_today: |
+        {% if state.state_with_unit == "0" %}
+          Yes
+        {% else %}
+          No
+        {% endif %}
+      trash_schedule_tomorrow: |
+        {% if state.state_with_unit == "1" %}
+          Yes
+        {% else %}
+          No
+        {% endif %}

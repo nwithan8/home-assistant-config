@@ -1,0 +1,52 @@
+language: "en"
+intents:
+  CustomOpenShadesNumber:
+    data:
+      - sentences:
+          - "(open | raise) [the] {order} (shade | blind) in [the] {area_name}"
+  CustomOpenShadesRange:
+    data:
+      - sentences:
+          - "(open | raise) [the] first {number} (shades | blinds) in [the] {area_name}"
+  CustomCloseShadesNumber:
+    data:
+      - sentences:
+          - "(close | lower | shut) [the] {order} (shade | blind) in [the] {area_name}"
+  CustomCloseShadesRange:
+    data:
+      - sentences:
+          - "(close | lower | shut) [the] first {number} (shades | blinds) in [the] {area_name}"
+
+lists:
+  area_name:
+    values:
+      - in: "living room"
+        out: "Living Room"
+      - in: "dining room"
+        out: "Dining Room"
+      - in: "[master] bedroom"
+        out: "Master Bedroom"
+  order:
+    values:
+      - in: "first"
+        out: 1
+      - in: "second"
+        out: 2
+      - in: "third"
+        out: 3
+      - in: "fourth"
+        out: 4
+  number:
+    values:
+      - in: "2"
+        out: 2
+      - in: "two"
+        out: 2
+      - in: "3"
+        out: 3
+      - in: "three"
+        out: 3
+      - in: "4"
+        out: 4
+      - in: "four"
+        out: 4

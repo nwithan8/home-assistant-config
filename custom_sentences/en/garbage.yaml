@@ -1,0 +1,36 @@
+language: "en"
+intents:
+  HassGetState:
+    data:
+      - sentences:
+          - "is [it] ( garbage | trash ) day [today]"
+          - "[is] today ( garbage | trash) [pickup] day"
+          - "[is] ( garbage | trash ) pickup today"
+        response: trash_schedule_today
+        slots:
+          name: "Garbage Schedule"
+          domain: sensor
+      - sentences:
+          - "is [it] recycling [day] [today]"
+          - "[is] today recycling [pickup] [day]"
+          - "[is] recycling pickup today"
+        response: trash_schedule_today
+        slots:
+          name: "Recycling Schedule"
+          domain: sensor
+      - sentences:
+          - "is [it] ( garbage | trash ) day tomorrow"
+          - "[is] tomorrow ( garbage | trash) [pickup] day"
+          - "[is] ( garbage | trash ) pickup tomorrow"
+        response: trash_schedule_tomorrow
+        slots:
+          name: "Garbage Schedule"
+          domain: sensor
+      - sentences:
+          - "is [it] recycling [day] tomorrow"
+          - "[is] tomorrow recycling [pickup] [day]"
+          - "[is] recycling pickup tomorrow"
+        response: trash_schedule_tomorrow
+        slots:
+          name: "Recycling Schedule"
+          domain: sensor

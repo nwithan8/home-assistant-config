@@ -1,0 +1,34 @@
+language: "en"
+intents:
+  HassGetState:
+    data:
+      - sentences:
+          - "[is] [the] front door [still] ( locked | secure | unlocked )"
+          - "[(what is | what's)] [the] state of [the] front door lock"
+          - "[(what is | what's)] [the] front door lock state"
+        slots:
+          name: "Front Door Lock"
+          area: "Front Door"
+      - sentences:
+          - "[is] [the] garage door [still] ( locked | secure | unlocked )"
+          - "[(what is | what's)] [the] state of [the] garage door lock"
+          - "[(what is | what's)] [the] garage door lock state"
+        slots:
+          name: "Garage Door Lock"
+          area: "Garage"
+  CustomLockDoor:
+    data:
+      - sentences:
+          - "( lock | secure ) [the] {door_entity} [lock]"
+  CustomUnlockDoor:
+    data:
+      - sentences:
+          - "( unlock | open ) [the] {door_entity} [lock]"
+
+lists:
+  door_entity:
+    values:
+      - in: "garage door"
+        out: "lock.garage_door_lock_lock_mechanism"
+      - in: "front door"
+        out: "lock.front_door_lock_doorlock"

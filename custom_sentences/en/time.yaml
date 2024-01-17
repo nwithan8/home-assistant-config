@@ -1,0 +1,7 @@
+language: "en"
+intents:
+  CustomWhatTimeIsIt:
+    data:
+      - sentences:
+          - "[what] time [is it] [right] [now]"
+          - "[what] is [the] [current] time"

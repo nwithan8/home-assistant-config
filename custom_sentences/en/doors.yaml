@@ -1,0 +1,26 @@
+language: "en"
+intents:
+  HassGetState:
+    data:
+      - sentences:
+          - "[is] [the] garage [door] [still] (open | closed | shut)"
+          - "[(what is | what's)] [the] state of [the] garage [door]"
+          - "[(what is | what's)] [the] garage [door] state"
+        slots:
+          name: "Garage Door Opener Door"
+          area: "Garage"
+      - sentences:
+          - "[is] [the] front door [still] (open | closed | shut)"
+          - "[(what is | what's)] [the] state of [the] front door "
+          - "[(what is | what's)] [the] front door state"
+        slots:
+          name: "Front Door State"
+          area: "Front Door"
+  CustomOpenGarageDoor:
+    data:
+      - sentences:
+          - "open [the] garage [door]"
+  CustomCloseGarageDoor:
+    data:
+      - sentences:
+          - "(close | shut) [the] garage [door]"
