@@ -1,29 +1,62 @@
 language: "en"
 intents:
+  # Override "x door locked/unlocked" to check for  "x door lock" state
   HassGetState:
     data:
       - sentences:
-          - "[is] [the] front door [still] ( locked | secure | unlocked )"
-          - "[(what is | what's)] [the] state of [the] front door lock"
-          - "[(what is | what's)] [the] front door lock state"
+          - "[is] [the] front door [still] <locked_state>"
+        response: one_yesno_echo_state
         slots:
           name: "Front Door Lock"
-          area: "Front Door"
+          domain: lock
+          state: "locked"
+          override_name: "the front door"
       - sentences:
-          - "[is] [the] garage door [still] ( locked | secure | unlocked )"
-          - "[(what is | what's)] [the] state of [the] garage door lock"
-          - "[(what is | what's)] [the] garage door lock state"
+          - "[is] [the] front door [still] <unlocked_state>"
+        response: one_yesno_echo_state
+        slots:
+          name: "Front Door Lock"
+          domain: lock
+          state: "unlocked"
+          override_name: "the front door"
+      - sentences:
+          - "[<what_is>] [the] state of [the] front door lock"
+          - "[<what_is>] [the] front door lock state"
+        response: echo_state
+        slots:
+          name: "Front Door Lock"
+          override_name: "The front door"
+      - sentences:
+          - "[is] [the] garage [door] [still] <locked_state>"
+        response: one_yesno_echo_state
         slots:
           name: "Garage Door Lock"
-          area: "Garage"
+          domain: lock
+          state: "locked"
+          override_name: "the garage door"
+      - sentences:
+          - "[is] [the] garage [door] [still] <unlocked_state>"
+        response: one_yesno_echo_state
+        slots:
+          name: "Garage Door Lock"
+          domain: lock
+          state: "unlocked"
+          override_name: "the garage door"
+      - sentences:
+          - "[<what_is>] [the] state of [the] garage door lock"
+          - "[<what_is>] [the] garage door lock state"
+        response: echo_state
+        slots:
+          name: "Garage Door Lock"
+          override_name: "The garage door"
   CustomLockDoor:
     data:
       - sentences:
-          - "( lock | secure ) [the] {door_entity} [lock]"
+          - "<lock_action> [the] {door_entity} [lock]"
   CustomUnlockDoor:
     data:
       - sentences:
-          - "( unlock | open ) [the] {door_entity} [lock]"
+          - "<unlock_action> [the] {door_entity} [lock]"
 
 lists:
   door_entity:

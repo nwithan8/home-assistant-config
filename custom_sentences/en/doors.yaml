@@ -1,26 +1,51 @@
 language: "en"
 intents:
+  # Override "x door open/close" to check for various state checks
   HassGetState:
     data:
       - sentences:
-          - "[is] [the] garage [door] [still] (open | closed | shut)"
-          - "[(what is | what's)] [the] state of [the] garage [door]"
-          - "[(what is | what's)] [the] garage [door] state"
+          - "[is] [the] garage [door] [still] <door_opened_state>"
+        response: one_yesno_echo_state
         slots:
           name: "Garage Door Opener Door"
-          area: "Garage"
+          domain: cover
+          state: "open"
+          override_name: "the garage door"
       - sentences:
-          - "[is] [the] front door [still] (open | closed | shut)"
-          - "[(what is | what's)] [the] state of [the] front door "
-          - "[(what is | what's)] [the] front door state"
+          - "[is] [the] garage [door] [still] <door_closed_state>"
+        response: one_yesno_echo_state
+        slots:
+          name: "Garage Door Opener Door"
+          domain: cover
+          state: "closed"
+          override_name: "the garage door"
+      - sentences:
+          - "[<what_is>] [the] state of [the] garage [door]"
+          - "[<what_is>] [the] garage [door] state"
+        response: echo_state
+        slots:
+          name: "Garage Door Opener Door"
+          override_name: "The garage door"
+      - sentences:
+          - "[is] [the] front door [still] <door_opened_state>"
+        response: one_yesno_echo_state
         slots:
           name: "Front Door State"
-          area: "Front Door"
-  CustomOpenGarageDoor:
-    data:
+          domain: binary_sensor
+          state: "on"
+          override_name: "the front door"
       - sentences:
-          - "open [the] garage [door]"
-  CustomCloseGarageDoor:
-    data:
+          - "[is] [the] front door [still] <door_closed_state>"
+        response: one_yesno_echo_state
+        slots:
+          name: "Front Door State"
+          domain: binary_sensor
+          state: "off"
+          override_name: "the front door"
       - sentences:
-          - "(close | shut) [the] garage [door]"
+          - "[<what_is>] [the] state of [the] front door"
+          - "[<what_is>] [the] front door state"
+        response: echo_state
+        slots:
+          name: "Front Door State"
+          override_name: "The front door"

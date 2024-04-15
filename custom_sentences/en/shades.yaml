@@ -1,21 +1,66 @@
 language: "en"
 intents:
+  # blinds and shades are technically two different things in HA, but we're referring to shades when we say "blinds"
+  # Override default sentences for shades / blinds
+  HassGetState:
+    data:
+      - sentences:
+          - "<is_are> <shade_shades> in <area> [still] <shade_opened_state>"
+        response: all
+        slots:
+          domain: cover
+          device_class: shade
+          state: "open"
+      - sentences:
+          - "<is_are> <shade_shades> in <area> [still] <shade_closed_state>"
+        response: all
+        slots:
+          domain: cover
+          device_class: shade
+          state: "closed"
+      - sentences:
+          - "[<what_is>] [the] state of <shade_shades> in <area>"
+          - "[<what_is>] <area> <shade_shades> state"
+        response: count_are_and_are_not
+        slots:
+          domain: cover
+          device_class: shade
+          state: "open"
+  HassTurnOn:
+    data:
+      - sentences:
+          - "<shade_open_action> [all] <shade_shades> in <area>"
+          - "<shade_open_action> [all] [the] <area> <shade_shades>"
+        slots:
+          domain: cover
+          device_class: shade
+        response: cover_device_class
+  HassTurnOff:
+    data:
+      - sentences:
+          - "<shade_close_action> [all] <shade_shades> in <area>"
+          - "<shade_close_action> [all] [the] <area> <shade_shades>"
+        slots:
+          domain: cover
+          device_class: shade
+        response: cover_device_class
+  # Need to use {area_name} variable rather than <area> alias for custom intents to work properly
   CustomOpenShadesNumber:
     data:
       - sentences:
-          - "(open | raise) [the] {order} (shade | blind) in [the] {area_name}"
+          - "<shade_open_action> [the] {order} <shade> in [the] {area_name}"
   CustomOpenShadesRange:
     data:
       - sentences:
-          - "(open | raise) [the] first {number} (shades | blinds) in [the] {area_name}"
+          - "<shade_open_action> [the] first {number} <shades> in [the] {area_name}"
   CustomCloseShadesNumber:
     data:
       - sentences:
-          - "(close | lower | shut) [the] {order} (shade | blind) in [the] {area_name}"
+          - "<shade_close_action> [the] {order} <shade> in [the] {area_name}"
   CustomCloseShadesRange:
     data:
       - sentences:
-          - "(close | lower | shut) [the] first {number} (shades | blinds) in [the] {area_name}"
+          - "<shade_close_action> [the] first {number} <shades> in [the] {area_name}"
 
 lists:
   area_name:

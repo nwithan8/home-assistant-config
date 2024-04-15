@@ -1,18 +1,4 @@
 intent_script:
-  CustomOpenGarageDoor:
-    action:
-      service: cover.open_cover
-      data:
-        entity_id: cover.garage_door_opener_door
-    speech:
-      text: Opening
-  CustomCloseGarageDoor:
-    action:
-      service: cover.close_cover
-      data:
-        entity_id: cover.garage_door_opener_door
-    speech:
-      text: Closing
   CustomUnlockDoor:
     action:
       service: lock.unlock
@@ -133,3 +119,14 @@ intent_script:
   CustomWhatTimeIsIt:
     speech:
       text: It is {{ now().strftime("%H:%M") }}
+  CustomRemindMe:
+    action:
+      service: script.remindme_processor
+      data:
+        reminder: "{{ reminder }}"
+        on_day: "{{ on_day }}"
+        duration: "{{ duration }}"
+        units: "{{ units }}"
+        partofday: "{{ partofday }}"
+    speech:
+      text: "Creating reminder {{ reminder }}"

@@ -3,6 +3,61 @@ responses:
   intents:
     HassGetState:
       # Confirmed, these work, but getting a right slot details to find the entity for "state" might be difficult
+      echo_state: |
+        {% if slots.override_name is defined %}{{ slots.override_name }}{% else %}{{ slots.name }}{% endif %} is {{ state.state_with_unit }}
+      one_yesno_echo_state: |
+        {% if query.matched %}
+          Yes,
+        {% else %}
+          No,
+        {% endif %}
+        {% if slots.override_name is defined %}{{ slots.override_name }}{% else %}{{ slots.name }}{% endif %} is {{ state.state_with_unit }}
+      any: |
+        {% if query.matched %}
+          {% set match = query.matched | map(attribute="name") | sort | list %}
+          {% if match | length > 4 %}
+            Yes, {{ match[:3] | join(", ") }} and {{ (match | length - 3) }} more
+          {%- else -%}
+            Yes,
+            {% for name in match -%}
+              {% if not loop.first and not loop.last %}, {% elif loop.last and not loop.first %} and {% endif -%}
+              {{ name }}
+            {%- endfor -%}
+          {% endif %}
+        {% else %}
+          No
+        {% endif %}
+      all: |
+        {% if not query.unmatched %}
+          Yes, all are {{ slots.state }}
+        {% else %}
+          {% set no_match = query.unmatched | map(attribute="name") | sort | list %}
+          {% if no_match | length > 4 %}
+            No, {{ no_match[:3] | join(", ") }} and {{ (no_match | length - 3) }} more are not {{ slots.state }}
+          {%- else -%}
+            No,
+            {% for name in no_match -%}
+              {% if not loop.first and not loop.last %}, {% elif loop.last and not loop.first %} and {% endif -%}
+              {{ name }}
+            {%- endfor %} {% if no_match | length > 1 %}are{% else %}is{% endif %} not {{ slots.state }}
+          {% endif %}
+        {% endif %}
+      count_are_and_are_not: |
+        {% if not query.unmatched %}
+          All are {{ slots.state }}
+        {% elif not query.matched %}
+          None are {{ slots.state }}
+        {% else %}
+          {% set match_count = query.matched | map(attribute="name") | sort | list | length %}
+          {% set no_match_count = query.unmatched | map(attribute="name") | sort | list | length %}
+          {{ match_count }} {% if match_count > 1 %}are{% else %}is{% endif %} {{ slots.state }} and {{ no_match_count }} {% if no_match_count > 1 %}are{% else %}is{% endif %} not
+        {% endif %}
+      yes_state: |
+        {% if query.matched %}
+          Yes
+        {% else %}
+          No, {{ state.state_with_unit }}
+        {% endif %}
       yes_true: |
         {% if state.state_with_unit == "True" %}
           Yes
