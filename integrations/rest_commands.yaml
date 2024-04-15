@@ -7,3 +7,8 @@ rest_command:
       accept: "application/json"
     content_type: "application/json; charset=utf-8"
     payload: "{{ payload }}"
+  willow_notify:
+    url: !secret willow_notify_endpoint
+    method: POST
+    content_type: application/json
+    payload: '{"cmd":"notify","data":{"backlight":"{{backlight}}","backlight_max":"{{backlightMax}}","repeat":"{{repeat}}","audio_url":"{{audioUrl}}","text":"{{text}}","volume":"{{volume}}"},"hostname":"{{hostname}}"}'
