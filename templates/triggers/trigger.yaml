@@ -794,32 +794,4 @@
         {{ ns.value }}
       wind_speed_unit: "m/s" # Make sure this matches the wind speed unit in "sensor" section above
       cloud_coverage_template: "{{ hourly_forecast['weather.openweathermap'].forecast[0].cloud_coverage }}"
-      forecast_template: >  # Will be removed in 2024.3
-        {% set property = 'temperature' %}
-        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
-        {% set ns = namespace(value="Unavailable") %}
-        {% for name in sources if name in hourly_forecast %}
-        {% set forecasts = hourly_forecast[name].forecast %}
-        {% if not forecasts %}
-        {% continue %}
-        {% endif %}
-        {% set ns.value = forecasts %}
-        {% break %}
-        {% endfor %}
-        {{ ns.value }}
-      forecast_daily_template: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}" # Will be removed in 2024.3
-      forecast_hourly_template: >  # Will be removed in 2024.3
-        {% set property = 'temperature' %}
-        {% set sources = ['weather.kbjc_hourly', 'weather.openweathermap'] %}
-        {% set ns = namespace(value="Unavailable") %}
-        {% for name in sources if name in hourly_forecast %}
-        {% set forecasts = hourly_forecast[name].forecast %}
-        {% if not forecasts %}
-        {% continue %}
-        {% endif %}
-        {% set ns.value = forecasts %}
-        {% break %}
-        {% endfor %}
-        {{ ns.value }}
-      forecast_twice_daily_template: "{{ twice_daily_forecast['weather.kbjc_daynight'].forecast }}" # Will be removed in 2024.3
       precipitation_unit: "mm" # Make sure this matches the precipitation unit in "sensor" section above
