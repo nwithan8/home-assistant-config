@@ -162,6 +162,31 @@
     - name: Upper Porch Summary
       <<: *area_info
 
+    # Time
+    - name: Is day
+      state: >
+        {{ is_state('sun.sun', 'above_horizon') }}
+
+    - name: Is night
+      state: > 
+        {{ is_state('sun.sun', 'below_horizon') }}
+
+      # Between sunrise and noon
+    - name: Is morning
+      state: >
+        {{ now().hour < 12 and is_state('sun.sun', 'above_horizon') }}
+
+      # Between noon and 4 p.m.
+    - name: Is afternoon
+      state: >
+        {{ 12 <= now().hour < 16 }}
+
+      # Between 4 p.m. and sunset
+    - name: Is evening
+      state: >
+        {{ 16 <= now().hour and is_state('sun.sun', 'above_horizon') }}
+        
+
     # Months
     - name: Is January
       state: >
