@@ -5,4 +5,4 @@ camera:
     name: mail_usps
 
     # ZoneMinder
-  - platform: zoneminder
+  # - platform: zoneminder
