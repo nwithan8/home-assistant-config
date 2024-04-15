@@ -1,20 +1,20 @@
-proxmoxve:
-  - host: !secret proxmox_ip
-    username: !secret proxmox_username
-    password: !secret proxmox_password
-    verify_ssl: false
-    realm: pve
-    nodes:
-      - node: proxmox
-        vms:
-          - 100
-          - 101
-          - 102
-          - 103
-          - 104
-          - 105
-          - 106
-          - 107
-          - 108
-          - 109
-          - 110
+# proxmoxve:
+#  - host: !secret proxmox_ip
+#    username: !secret proxmox_username
+#    password: !secret proxmox_password
+#    verify_ssl: false
+#    realm: pve
+#    nodes:
+#      - node: proxmox
+#        vms:
+#          - 100
+#          - 101
+#          - 102
+#          - 103
+#          - 104
+#          - 105
+#          - 106
+#          - 107
+#          - 108
+#          - 109
+#          - 110

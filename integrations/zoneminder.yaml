@@ -1,6 +1,6 @@
-zoneminder:
-  - host: !secret zoneminder_ip
-    ssl: false
-    verify_ssl: false
+# zoneminder:
+#  - host: !secret zoneminder_ip
+#    ssl: false
+#    verify_ssl: false
     # username: !secret zoneminder_username
     # password: !secret zoneminder_password
