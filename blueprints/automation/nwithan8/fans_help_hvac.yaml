@@ -1,0 +1,83 @@
+# This script will control fans to assist the HVAC system with cooling down a house.
+blueprint:
+  name: Fans helping HVAC system with cooling
+  description: Have fans help your HVAC system cool down your house
+  source_url: https://raw.githubusercontent.com/nwithan8/configs/main/home_assistant/blueprints/automations/fans_help_hvac.yaml
+  domain: automation
+  input:
+    hvac:
+      name: HVAC System
+      description: The HVAC system (or thermostat) to trigger this automation
+      selector:
+        entity:
+          domain:
+            - climate
+    fans:
+      name: Fans
+      description: The fans to control
+      selector:
+        entity:
+          domain:
+            - fan
+          multiple: true
+    downstep:
+      name: Downstep fans
+      description: Return fans to original speed when deactivating, rather than turning them off
+      selector:
+        boolean:
+
+variables:
+  fans: !input fans
+  hvac: !input hvac
+  downstep: !input downstep
+
+trigger:
+  - id: "cool_on"
+    platform: state
+    entity_id: !input hvac
+    to: "cooling"
+
+  - id: "cool_off"
+    platform: state
+    entity_id: !input hvac
+    from: "cooling"
+
+condition: []
+
+action:
+  - choose:
+      # Cooling activated
+      - conditions:
+          - condition: trigger
+            id: "cool_on"
+        sequence:
+          - repeat:
+              for_each: "{{ fans }}"
+              sequence:
+                # Turn on off fans, or increase speeds on already-on fans
+                - service: fan.increase_speed
+                  target:
+                    entity_id: "{{ repeat.item }}"
+
+      # Cooling deactivated
+      - conditions:
+          - condition: trigger
+            id: "cool_off"
+        sequence:
+          - repeat:
+              for_each: "{{ fans }}"
+              sequence:
+                - if:
+                    - condition: template
+                      value_template: "{{ downstep }}"
+                  then:
+                    # NOTE: We can't tell if the fan was at 100% before this automation turned on, might be decreasing accidentally
+                    - service: fan.decrease_speed
+                      target:
+                        entity_id: "{{ repeat.item }}"
+                  else:
+                    - service: fan.turn_off
+                      target:
+                        entity_id: "{{ repeat.item }}"
+
+mode: single

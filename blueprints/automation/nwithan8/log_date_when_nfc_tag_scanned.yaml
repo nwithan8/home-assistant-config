@@ -1,0 +1,34 @@
+blueprint:
+  name: Log Date When NFC Tag Scanned
+  description: Update the date of a datetime helper to today whenever an NFC tag is scanned
+  domain: automation
+  input:
+    nfc_tag:
+      name: NFC tag
+      description: >
+        The ID of the NFC tag that, when scanned, will trigger this automation.
+        Can be found under Settings -> Tags, and then click on the relavant tag.
+    date_tracker:
+      name: Date tracker
+      description: The datetime helper that will be updated when the NFC tag is scanned.
+      selector:
+        target:
+          entity:
+            domain:
+              - input_datetime
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  - alias: When associated NFC tag is scanned
+    id: tag_scan
+    platform: tag
+    tag_id: !input nfc_tag
+
+action:
+  - service: input_datetime.set_datetime
+    target:
+      entity_id: !input date_tracker
+    data:
+      datetime: "{{ now() }}"
