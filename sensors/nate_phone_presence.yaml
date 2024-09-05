@@ -1,0 +1,6 @@
+platform: mqtt_room
+name: "Sexel Pro Room Presence"
+device_id: !secret nate_phone_id
+state_topic: !secret nate_phone_topic
+timeout: 10
+away_timeout: 120

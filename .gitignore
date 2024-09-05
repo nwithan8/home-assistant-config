@@ -30,7 +30,9 @@ blueprints/*/homeassistant
 dwains-dashboard/configs/
 
 # ESPHome ignores
+esphome/*
 esphome/.*/
+esphome/secrets.yaml
 
 # Ignore add-on files
 aircast.xml
@@ -73,6 +75,9 @@ tts
 www
 /addons_*/
 .shopping_list.json
+
+# Ignore GTFS database
+gtfs/*.sqlite
 
 # Temporary ignores
 .old_config

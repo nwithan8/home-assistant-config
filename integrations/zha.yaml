@@ -3,7 +3,9 @@ zha:
   custom_quirks_path: /config/custom_zha_quirks/
   zigpy_config:
     ota:
+      allow_file_providers: "I understand I can *destroy* my devices by enabling OTA updates from files. Some OTA updates can be mistakenly applied to the wrong device, breaking it. I am consciously using this at my own risk."
       otau_directory: /config/zigpy_ota
+      z2m_local_index: /config/zigpy_ota/firmware-zha.json
       ikea_provider: true
       inovelli_provider: true
       ledvance_provider: true

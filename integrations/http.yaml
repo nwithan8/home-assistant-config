@@ -1,6 +1,7 @@
 http:
   use_x_forwarded_for: true
   trusted_proxies:
+    - 127.0.0.1       # Allow localhost authentication
     - 10.0.0.200      # Keep this (used?)
     - 172.30.33.0/24  # Keep this (internally used)
     - 172.70.130.86   # Keep this (used?)

@@ -1,0 +1,1154 @@
+blueprint:
+  name: Automatic Gate
+  domain: automation
+  author: etiennec78
+  description: "# Automatic Gate ⛩️\n\n## Description \U0001F4DD\n**Modular** and
+    **secure** gate automation that **opens your gate** upon leaving or arriving\nMakes
+    managing your gate while driving easier : don't ever touch your screen or remote
+    again\nHave your gate greet you when you arrive home and be ready for you\nCustomize
+    the options to tailor the system to your exact needs\n\n## Key Features \U0001F31F\n*
+    **Automatic Opening**: Your gate will open automatically when you drive home.
+    No need to press any buttons ! \U0001F3E0\n* **Smart Navigation**: Directly open
+    the gate when leaving home, or launch an itinerary when starting from outside
+    \U0001F680\n* **Multi-User Support**: Manages up to 10 drivers simultaneously
+    \U0001F697\n* **Collision Prevention**: Ensures the gate doesn't close on anyone
+    arriving or leaving at the same time \U0001F6A7\n* **Security & Reliability**:\n
+    \ * Precise Waze and ETA calculations to have your gate fully open exactly when
+    you arrive home \U0001F3AF\n  * Real-time position tracking to adjust timing for
+    traffic or if you pass by without entering \U0001F4CD\n  * Car status monitoring
+    to cancel everything if you leave your car ✋\n  * Built-in timeouts in case of
+    an internet loss ⏳\n  * Maximum entry and leaving time before auto-closing ⌛\n
+    \ * Notification alerts at each decision of the automation \U0001F6A8\n  * Manual
+    actions prioritized over the automation, letting you control your gate even while
+    the automation is running ✍️\n* **Customizable Settings**:\n  * Auto-close with
+    iBeacon \U0001F4E1\n  * Adjustable notifications \U0001F4AC\n  * Customizable
+    security options \U0001F512\n  * Customizable gate operation timings \U0001F6E0️\n
+    \ * Customizable travel time refresh rate \U0001F501\n  * Multiple gates supported
+    by reusing the blueprint ♻️\n\n## More info ℹ️\n* Version : 1.0.7\n* Set up sensors
+    : [click here](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md)\n*
+    Flowchart : [click here](https://miro.com/app/board/uXjVMpH4Tno=/)\n* Github :
+    [click here](https://github.com/etiennec78/Home-Automation/tree/master/Automatic%20Gate)\n*
+    Discord : etiennec78\n[![\"Buy Me A Coffee\"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/etiennec78)"
+  homeassistant:
+    min_version: 2024.6.0
+  input:
+    essential_sensors:
+      name: Essential sensors
+      icon: mdi:gate
+      collapsed: true
+      input:
+        gate:
+          name: ⛩️ Gate
+          description: The **switch** or **cover** which controls your **[gate](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#gate-%EF%B8%8F)**
+          selector:
+            entity:
+              filter:
+              - domain:
+                - switch
+                - cover
+              multiple: false
+        gate_location:
+          name: "\U0001F4CD Gate location"
+          description: The zone where your gate is located, to detect whether you
+            are leaving or arriving
+          default: zone.home
+          selector:
+            entity:
+              filter:
+              - domain:
+                - zone
+              multiple: false
+        lead_time:
+          name: "\U0001F553 Lead time"
+          description: The **lead time** to open the gate **before your arrival**
+            (take your gate movement time & a margin into account)
+          default: 75
+          selector:
+            number:
+              min: 10.0
+              max: 300.0
+              unit_of_measurement: seconds
+              step: 1.0
+              mode: slider
+        eta_sensor:
+          name: "\U0001F4C5 Planned time of opening"
+          description: An empty **[input datetime](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#planned-opening-)
+            helper** which will be used to set an **ETA** and plan the **opening of
+            your gate** (see wiki)
+          selector:
+            entity:
+              filter:
+              - domain:
+                - input_datetime
+              multiple: false
+    per_person_sensors:
+      name: Per person sensors
+      icon: mdi:account-multiple
+      collapsed: true
+      description: ⚠️ Please enter the same amount of entires in each input, and place
+        users in the same order
+      input:
+        persons:
+          name: "\U0001F464 Tracked users"
+          description: 'Each **user** which should be **[tracked](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#gps-location-trackers-)**
+            for **position updates**
+
+            *Notes :*
+
+            *⚠️ Use high precision while driving in your ETA zone or you could time
+            out*
+
+            *If your tracker has report latency (wifi/ble), and you plug Android Auto
+            just after leaving, your gate could open thinking you are still there*'
+          selector:
+            entity:
+              multiple: true
+              filter:
+              - domain:
+                - person
+        driving_sensors:
+          name: "\U0001F697 Driving sensors"
+          description: Each **[driving sensor](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#driving-sensors-)**
+            which should trigger the automation
+          selector:
+            entity:
+              multiple: true
+              filter:
+              - domain:
+                - binary_sensor
+        travel_time_sensors:
+          name: ✈️ Travel time sensors
+          description: 'Each **[travel time sensor](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#travel-time-sensors-%EF%B8%8F)**
+            monitoring each user **time left before arrival**
+
+            *⚠️ Please set a [custom polling interval](https://www.home-assistant.io/integrations/waze_travel_time/#defining-a-custom-polling-interval)*'
+          selector:
+            entity:
+              multiple: true
+              filter:
+              - domain:
+                - sensor
+                device_class:
+                - duration
+        proximity_sensors:
+          name: "\U0001F4CF Proximity sensors"
+          description: Each **[proximity sensor](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#proximity-sensors-)**
+            from the proximity integration to calculate user distance from your gate
+          selector:
+            entity:
+              multiple: true
+              filter:
+              - integration: proximity
+                domain:
+                - sensor
+                device_class:
+                - distance
+        notify_devices:
+          name: "\U0001F4AC Notify services"
+          description: Each **[service](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#notify-services-)**
+            of **device to notify** (Find the service ids by going into [Developer
+            tools > Services tab](https://my.home-assistant.io/redirect/developer_states/)
+            > searching for "notify.")
+          selector:
+            text:
+              multiple: true
+              prefix: notify.mobile_app_
+              multiline: false
+        itinerary_sensors:
+          name: "\U0001F5FA️ Itinerary sensors"
+          description: Each empty **[itinerary input text](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#itinerary-sensors-%EF%B8%8F)**
+            helper to store each user **itinerary state**
+          selector:
+            entity:
+              multiple: true
+              filter:
+              - domain:
+                - input_text
+    automation_settings:
+      name: Automation settings
+      icon: mdi:cog
+      collapsed: true
+      input:
+        travel_time_rate:
+          name: "\U0001F504 Travel time refresh rate"
+          description: "Calculate the Travel time & ETA\n\n  - **Continuously** during
+            the whole itinerary (custom refresh interval while away)\n  - Only while
+            the vehicle is **near home**\n  - Only **once** when the vehicle gets
+            near home\n\n**\"Continuously\"** can use more Waze/Maps credits, but
+            can be useful to display a precise ETA on your dashboard when far from
+            your destination\n**\"While near home\"** allows to monitor if you drive
+            near your gate without entering to abort the itinerary, or if there are
+            traffic jams near home to open later (recommended)\n**\"Only once\"**
+            uses the less amount of credits, but could trigger if you come near your
+            gate without entering (not recommended)"
+          default: While near home
+          selector:
+            select:
+              options:
+              - Continuously
+              - While near home
+              - Once when near home
+              multiple: false
+              custom_value: false
+              sort: false
+        continuously_refresh_interval:
+          name: ⏳ Continuously refresh interval
+          description: Your travel time **refresh interval** while away. Only active
+            with a refresh rate set to **"Continuously"**
+          default: 5
+          selector:
+            number:
+              min: 1.0
+              max: 60.0
+              unit_of_measurement: minutes
+              step: 1.0
+              mode: slider
+        eta_zone:
+          name: "\U0001F680 ETA planning zone"
+          description: At which **distance** from gate should your vehicle start planning
+            its **Estimated Time of Arrival** to **open your gate** ?
+          default: 1000
+          selector:
+            number:
+              min: 200.0
+              max: 5000.0
+              unit_of_measurement: meters
+              step: 1.0
+              mode: slider
+        activation_zone:
+          name: "\U0001F512 Gate activation zone"
+          description: At which **maximal distance** should your vehicle be able to
+            automatically **open your gate** ? It will automatically **close** if
+            you **leave** this zone
+          default: 1200
+          selector:
+            number:
+              min: 300.0
+              max: 5000.0
+              unit_of_measurement: meters
+              step: 1.0
+              mode: slider
+        automatic_closing:
+          name: "\U0001F512 Automatic closing behavior"
+          description: "Gate automatic **closing** behavior\n\n  - **Automatically
+            close** your gate after you reach your destination (or leave if ble sensors
+            are set)\n  - **Only close for safety mechanism**, in case you don't want
+            your gate to close automatically but want to keep safety features\n  -
+            **Never close** at all, in case your gate doesn't support closing. This
+            will disable almost all safety features"
+          default: 'on'
+          selector:
+            select:
+              options:
+              - label: Automatically close
+                value: 'on'
+              - label: Only close for safety mechanism
+                value: only-safety
+              - label: Never close
+                value: 'off'
+              multiple: false
+              custom_value: false
+              sort: false
+        safety_delay:
+          name: "\U0001F512 Auto-close safety delay"
+          description: The time the gate will wait before **automatically closing**
+            after you have arrived home and left your car
+          default: 5
+          selector:
+            number:
+              min: 2.0
+              max: 30.0
+              unit_of_measurement: minutes
+              step: 1.0
+              mode: slider
+        timeout_delay:
+          name: ⌛ Timeout delay
+          description: 'The time the automation will wait before **stopping** if your
+            phone **times out** and doesn''t send new position updates, while being
+            in the activation zone
+
+            *Note : If your position provider doesn''t let you use a high accuracy
+            mode (like iOS), please increase this value*'
+          default: 2
+          selector:
+            number:
+              min: 0.5
+              max: 30.0
+              unit_of_measurement: minutes
+              step: 1.0
+              mode: slider
+        auto_close_arrival_delay:
+          name: "\U0001F4EC Auto-close delay after arrival"
+          description: 'The time the gate will wait before **automatically closing**
+            after you arrive home and you have left your car
+
+            *Note : Can be useful if you plan to collect mail or put away groceries
+            after arriving*'
+          default: 0
+          selector:
+            number:
+              min: 0.0
+              max: 30.0
+              unit_of_measurement: minutes
+              step: 1.0
+              mode: slider
+    notification_settings:
+      name: Notification settings
+      icon: mdi:bell
+      collapsed: true
+      description: Notification settings to translate texts or change notification
+        behavior
+      input:
+        opening_notification:
+          name: "\U0001F450 Opening notification"
+          description: 'Should the automation notify you when your gate opens?
+
+            *Note : If your gate already notifies you like my esphome firmware, you
+            can turn this off*'
+          default: true
+          selector:
+            boolean: {}
+        itinerary_update_title:
+          name: "\U0001F4C3ℹ️ Itinerary status update title"
+          description: The **title** displayed on the notification you will receive
+            when the **status of your itinerary** changes
+          default: Itinerary ℹ️
+          selector:
+            text: {}
+        itinerary_canceled_title:
+          name: "\U0001F4C3❌ Itinerary canceled title"
+          description: The **title** displayed on the notification you will receive
+            when your **itinerary gets canceled**
+          default: Itinerary canceled ❌
+          selector:
+            text: {}
+        gate_opening_title:
+          name: "\U0001F4C3\U0001F513 Gate opening notification title"
+          description: The **title** displayed on the notification you will receive
+            when your **gate is opening**
+          default: "Gate opening \U0001F513"
+          selector:
+            text: {}
+        gate_closing_title:
+          name: "\U0001F4C3\U0001F512 Gate closing notification title"
+          description: The **title** displayed on the notification you will receive
+            when your **gate is closing**
+          default: "Gate closing \U0001F512"
+          selector:
+            text: {}
+        awaiting_title:
+          name: "\U0001F4C3\U0001F4A4 Gate awaiting user notification title"
+          description: 'The **title** displayed on the notification you will receive
+            when your gate is **awaiting another user**
+
+            *Note : {{awaiting_persons}} will be replaced by the list of the users
+            being awaited*'
+          default: "Gate awaiting {{ awaiting_persons }} \U0001F4A4"
+          selector:
+            text: {}
+        itinerary_started_message:
+          name: "\U0001F4AC\U0001F680 Itinerary started notification"
+          description: The **content** of the notification you will receive when your
+            **itinerary starts**
+          default: Your itinerary has been started
+          selector:
+            text: {}
+        user_arrival_message:
+          name: "\U0001F4AC\U0001F3C1 User arrival notification"
+          description: The **content** of the notification you will receive when you
+            **arrive at your destination**
+          default: You have arrived at your destination
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        automatic_opening_message:
+          name: "\U0001F4AC\U0001F513 Automatic opening notification"
+          description: The **content** of the notification you will receive when your
+            gate is **automatically opening**
+          default: Automatic opening of the gate
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        automatic_closing_message:
+          name: "\U0001F4AC\U0001F512 Automatic closing notification"
+          description: The **content** of the notification you will receive when your
+            gate is **automatically closing**
+          default: Automatic closing of the gate
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        awaiting_message:
+          name: "\U0001F4AC\U0001F4A4 Gate awaiting user notification"
+          description: The **content** of the notification you will receive when your
+            gate is **awaiting another user**
+          default: The gate will close once all users have entered/exited
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        vehicle_left_message:
+          name: "\U0001F4AC⚠️ Vehicle left notification"
+          description: The **content** of the notification you will receive if you
+            **leave your vehicle**
+          default: You have left your vehicle
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        did_not_leave_message:
+          name: "\U0001F4AC⚠️ User did not leave notification"
+          description: 'The **content** of the notification you will receive if you
+            **don''t leave in time**
+
+            *Note : {{safety_delay}} will be replaced by your auto-close delay you
+            have set above*'
+          default: The vehicle did not leave in less than {{ safety_delay }} minutes
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        did_not_arrive_message:
+          name: "\U0001F4AC⚠️ User did not arrive notification"
+          description: 'The **content** of the notification you will receive if you
+            **don''t arrive in time**
+
+            *Note : {{safety_delay}} will be replaced by your auto-close delay you
+            have set above*'
+          default: The vehicle did not arrive in less than {{ safety_delay }} minutes
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        timed_out_message:
+          name: "\U0001F4AC⚠️ Timed out notification"
+          description: 'The **content** of the notification you will receive if you
+            **time out**
+
+            *Note : {{timeout_delay}} will be replaced by your auto-close delay you
+            have set above*'
+          default: Your position has not been updated in {{ timeout_delay }} minutes
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        vehicle_away_message:
+          name: "\U0001F4AC⚠️ Vehicle not in activation zone notification"
+          description: The **content** of the notification you will receive if **you
+            are not in your activation zone**
+          default: The vehicle is not in the activation zone
+          selector:
+            text:
+              multiline: true
+              multiple: false
+        travel_time_did_not_respond:
+          name: "\U0001F4AC⚠️ Travel time integration did not respond"
+          description: The **content** of the notification you will receive if your
+            **travel time integraton did not respond** during the itinerary
+          default: Your travel time integration did not respond during your itinerary
+    optional_sensors:
+      name: Optional sensors
+      icon: mdi:dots-horizontal-circle-outline
+      collapsed: true
+      input:
+        ble_entities:
+          name: "\U0001F50E iBeacon tracker entities"
+          description: 'Each **[BLE rssi tracker entity](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#bluetooth-entities-)**
+            to monitor your distance from the gate while leaving, to close it when
+            you''re out of reach
+
+            Needs [bluetooth transmitters](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#bluetooth-transmitter-)
+            set on companion apps
+
+            *Note : Let empty if no ble*'
+          default: []
+          selector:
+            entity:
+              multiple: true
+              filter:
+              - domain:
+                - sensor
+                device_class:
+                - signal_strength
+        ble_scanner_switch:
+          name: ⏯️ iBeacon scanner activator switch
+          description: 'The **[switch](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#bluetooth-scanner-switch-)**
+            you want to use to turn on and off your **iBeacon scanner** when a vehicle
+            is leaving
+
+            *Note : Let empty if no ble / want to always keep iBeacon running*'
+          default: ''
+          selector:
+            entity:
+              filter:
+              - domain:
+                - switch
+              multiple: false
+        ble_transmitter_phone_control:
+          name: "\U0001F4F5 Phone iBeacon control"
+          description: 'Should your **phone iBeacon transmitter** automatically be
+            turned **off** while not being used by the gate ?
+
+            *Note : Only necessary if ble tracker entities are set*
+
+            *Please manually set your [iBeacon transmitter](https://github.com/etiennec78/Home-Automation/blob/master/Automatic%20Gate/sensors.md#bluetooth-transmitter-)
+            to on in companion settings if disabled*'
+          default: true
+          selector:
+            boolean: {}
+  source_url: https://github.com/etiennec78/Home-Automation/blob/master/Automatic
+    Gate/automatic-gate.yaml
+variables:
+  gate: !input gate
+  gate_location: !input gate_location
+  lead_time: !input lead_time
+  safety_delay: !input safety_delay
+  timeout_delay: !input timeout_delay
+  opening_notification: !input opening_notification
+  persons: !input persons
+  driving_sensors: !input driving_sensors
+  travel_time_sensors: !input travel_time_sensors
+  proximity_sensors: !input proximity_sensors
+  notify_devices: !input notify_devices
+  itinerary_sensors: !input itinerary_sensors
+  eta_sensor: !input eta_sensor
+  travel_time_rate: !input travel_time_rate
+  continuously_refresh_interval: !input continuously_refresh_interval
+  eta_zone: !input eta_zone
+  activation_zone: !input activation_zone
+  ble_entities: !input ble_entities
+  ble_scanner_switch: !input ble_scanner_switch
+  ble_transmitter_phone_control: !input ble_transmitter_phone_control
+  automatic_closing: !input automatic_closing
+trigger:
+- platform: state
+  entity_id: !input driving_sensors
+  from: 'off'
+  to: 'on'
+condition: []
+action:
+- variables:
+    idx: '{{ driving_sensors.index(trigger.entity_id) }}'
+    person: '{{ persons[idx] }}'
+    driving_sensor: '{{ trigger.entity_id }}'
+    travel_time_sensor: '{{ travel_time_sensors[idx] }}'
+    notify_device: '{{ ''notify.mobile_app_''+notify_devices[idx] }}'
+    itinerary_sensor: '{{ itinerary_sensors[idx] }}'
+- if:
+  - condition: template
+    value_template: '{{ is_state(person, [state_attr(gate_location, ''friendly_name''),
+      states[gate_location].object_id]) }}'
+  then:
+  - service: input_text.set_value
+    target:
+      entity_id: '{{ itinerary_sensor }}'
+    data:
+      value: leaving
+  - if:
+    - condition: template
+      value_template: '{{ ble_entities != [] }}'
+    then:
+    - if:
+      - condition: template
+        value_template: !input ble_transmitter_phone_control
+      then:
+      - service: '{{ notify_device }}'
+        data:
+          message: command_ble_transmitter
+          data:
+            command: turn_on
+    - if:
+      - condition: template
+        value_template: '{{ ble_scanner_switch != '''' }}'
+      then:
+      - service: switch.turn_on
+        target:
+          entity_id: '{{ ble_scanner_switch }}'
+  - if:
+    - condition: template
+      value_template: '{{ is_state(gate, [''off'', ''closed'', ''closing'']) }}'
+    then:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ states[gate].domain == ''switch'' }}'
+        sequence:
+        - service: switch.turn_on
+          target:
+            entity_id: !input gate
+      - conditions:
+        - condition: template
+          value_template: '{{ states[gate].domain == ''cover'' }}'
+        sequence:
+        - service: cover.open_cover
+          target:
+            entity_id: !input gate
+    - if:
+      - condition: template
+        value_template: !input opening_notification
+      then:
+      - service: '{{ notify_device }}'
+        data:
+          title: !input gate_opening_title
+          message: !input automatic_opening_message
+          data:
+            car_ui: true
+            notification_icon: mdi:gate-open
+            channel: Gate alerts
+            importance: high
+            tag: gate-movement
+            timeout: 300
+  - if:
+    - condition: template
+      value_template: '{{ automatic_closing == ''on'' }}'
+    then:
+    - wait_for_trigger:
+      - platform: template
+        id: manual
+        value_template: '{{ is_state(gate, [''off'', ''closed'', ''closing'']) }}'
+      - platform: template
+        id: ble
+        value_template: '{{ ble_entities != [] and is_state(ble_entities[idx], ''unknown'')
+          }}'
+      - platform: template
+        id: vehicle_left
+        value_template: '{{ is_state(driving_sensor, ''off'') }}'
+      - platform: template
+        id: gate_zone_left
+        value_template: '{{ not is_state(person, [state_attr(gate_location, ''friendly_name''),
+          states[gate_location].object_id]) }}'
+      timeout:
+        minutes: !input safety_delay
+    - service: input_text.set_value
+      target:
+        entity_id: '{{ itinerary_sensor }}'
+      data:
+        value: none
+    - if:
+      - condition: template
+        value_template: '{{ ble_entities != [] and ble_transmitter_phone_control }}'
+      then:
+      - service: '{{ notify_device }}'
+        data:
+          message: command_ble_transmitter
+          data:
+            command: turn_off
+    - if:
+      - condition: template
+        value_template: '{{ wait.trigger.id == ''manual'' }}'
+      then:
+      - if:
+        - condition: template
+          value_template: '{{ ble_scanner_switch != '''' }}'
+        then:
+        - service: switch.turn_off
+          target:
+            entity_id: '{{ ble_scanner_switch }}'
+      else:
+      - if:
+        - condition: not
+          conditions:
+          - condition: template
+            value_template: '{{ driving_sensors | select(''is_state'', ''leaving'')
+              | list != [] }}'
+        then:
+        - if:
+          - condition: template
+            value_template: '{{ ble_scanner_switch != '''' }}'
+          then:
+          - service: switch.turn_off
+            target:
+              entity_id: '{{ ble_scanner_switch }}'
+        - if:
+          - condition: not
+            conditions:
+            - condition: template
+              value_template: '{{ driving_sensors | select(''is_state'', ''on_approach'')
+                | list != [] }}'
+          then:
+          - if:
+            - condition: template
+              value_template: '{{ wait.completed }}'
+            then:
+            - service: '{{ notify_device }}'
+              data:
+                title: !input gate_closing_title
+                message: !input did_not_leave_message
+                data:
+                  car_ui: true
+                  notification_icon: mdi:alert-circle
+                  channel: Gate alerts
+                  importance: high
+                  tag: gate-movement
+                  timeout: 300
+            else:
+            - service: '{{ notify_device }}'
+              data:
+                message: !input automatic_closing_message
+                data:
+                  car_ui: true
+                  notification_icon: mdi:gate
+                  channel: Gate alerts
+                  importance: high
+                  tag: gate-movement
+                  timeout: 300
+          - choose:
+            - conditions:
+              - condition: template
+                value_template: '{{ states[gate].domain == ''switch'' }}'
+              sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: !input gate
+            - conditions:
+              - condition: template
+                value_template: '{{ states[gate].domain == ''cover'' }}'
+              sequence:
+              - service: cover.close_cover
+                target:
+                  entity_id: !input gate
+          - stop: Successful
+      - variables:
+          awaiting_persons: "{% set awaiting_sensors = itinerary_sensors | select('is_state',
+            'on_approach') | list +\n                          itinerary_sensors |
+            select('is_state', 'leaving') | list %}\n{% set data = namespace(awaiting_persons=[])
+            %} {% for i in range(awaiting_sensors|length) %} {% set data.awaiting_persons
+            = data.awaiting_persons + [state_attr(persons[i], 'friendly_name')] %}
+            {% endfor %} {{ data.awaiting_persons | join(', ') }}"
+      - service: '{{ notify_device }}'
+        data:
+          title: !input awaiting_title
+          message: !input awaiting_message
+          data:
+            car_ui: true
+            notification_icon: mdi:sleep
+            channel: Gate alerts
+            importance: high
+            tag: itinerary-status
+      - wait_for_trigger:
+        - platform: template
+          value_template: '{{ is_state(gate, [''off'', ''closed'', ''closing'']) }}'
+      - service: '{{ notify_device }}'
+        data:
+          message: clear_notification
+          data:
+            tag: itinerary-status
+      - if:
+          condition: template
+          value_template: !input opening_notification
+        then:
+        - service: '{{ notify_device }}'
+          data:
+            message: clear_notification
+            data:
+              tag: gate-movement
+    else:
+    - wait_for_trigger:
+      - platform: template
+        id: gate_zone_left
+        value_template: '{{ not is_state(person, [state_attr(gate_location, ''friendly_name''),
+          states[gate_location].object_id]) }}'
+    - service: input_text.set_value
+      target:
+        entity_id: '{{ itinerary_sensor }}'
+      data:
+        value: none
+  else:
+  - service: input_text.set_value
+    target:
+      entity_id: '{{ itinerary_sensor }}'
+    data:
+      value: arriving
+  - service: '{{ notify_device }}'
+    data:
+      title: !input itinerary_update_title
+      message: !input itinerary_started_message
+      data:
+        car_ui: true
+        notification_icon: mdi:map-check
+        channel: Itinerary status
+        importance: high
+        tag: itinerary-status
+  - if:
+    - condition: template
+      value_template: '{{ travel_time_rate == ''While near home'' }}'
+    then:
+    - service: homeassistant.update_entity
+      target:
+        entity_id: '{{ travel_time_sensor }}'
+  - repeat:
+      while:
+      - condition: template
+        value_template: '{{ is_state(driving_sensor, ''on'') }}'
+      sequence:
+      - if:
+        - condition: template
+          value_template: '{{ travel_time_rate == ''Continuously'' and states[travel_time_sensor].last_updated
+            + timedelta(minutes=1) < now() }}'
+        then:
+        - service: homeassistant.update_entity
+          target:
+            entity_id: '{{ travel_time_sensor }}'
+      - wait_for_trigger:
+        - platform: event
+          event_type: state_changed
+          event_data:
+            entity_id: '{{ person }}'
+        - platform: template
+          value_template: '{{ is_state(driving_sensor, ''off'') }}'
+      - repeat:
+          while:
+          - condition: template
+            value_template: '{{ states(proximity_sensors[idx]) | int < eta_zone }}'
+          - condition: template
+            value_template: '{{ is_state(driving_sensor, ''on'') }}'
+          sequence:
+          - service: homeassistant.update_entity
+            target:
+              entity_id: '{{ travel_time_sensor }}'
+          - condition: template
+            value_template: '{{ states[travel_time_sensor].last_updated > now() -
+              timedelta(seconds=5) }}'
+          - service: input_datetime.set_datetime
+            target:
+              entity_id: !input eta_sensor
+            data:
+              datetime: '{{ (as_timestamp(now()) + (state_attr(travel_time_sensor,
+                ''duration'') * 60) - lead_time) | timestamp_custom(''%Y-%m-%d %H:%M:%S'')
+                }}
+
+                '
+          - if:
+            - condition: template
+              value_template: '{{ state_attr(eta_sensor, ''timestamp'') > as_timestamp(now())
+                }}'
+            then:
+            - if:
+              - condition: template
+                value_template: '{{ travel_time_rate == ''Once when near home'' }}'
+              then:
+              - wait_for_trigger:
+                - platform: time
+                  at: !input eta_sensor
+                - platform: template
+                  value_template: '{{ is_state(driving_sensor, ''off'') }}'
+              else:
+              - wait_for_trigger:
+                - platform: event
+                  event_type: state_changed
+                  event_data:
+                    entity_id: '{{ person }}'
+                - platform: time
+                  at: !input eta_sensor
+                - platform: template
+                  value_template: '{{ is_state(driving_sensor, ''off'') }}'
+                timeout:
+                  minutes: !input timeout_delay
+              - if:
+                - condition: template
+                  value_template: '{{ wait.completed }}'
+                then:
+                - service: input_text.set_value
+                  target:
+                    entity_id: '{{ itinerary_sensor }}'
+                  data:
+                    value: none
+                - service: '{{ notify_device }}'
+                  data:
+                    title: !input itinerary_canceled_title
+                    message: !input timed_out_message
+                    data:
+                      car_ui: true
+                      notification_icon: mdi:alert-circle
+                      channel: Itinerary status
+                      importance: high
+                      tag: itinerary-status
+                      timeout: 300
+                - stop: Timed out
+          - condition: template
+            value_template: '{{ state_attr(eta_sensor, ''timestamp'') <= as_timestamp(now())
+              }}'
+          - if:
+            - condition: template
+              value_template: '{{ states(proximity_sensors[idx]) | int > activation_zone
+                }}'
+            then:
+            - service: input_text.set_value
+              target:
+                entity_id: '{{ itinerary_sensor }}'
+              data:
+                value: none
+            - service: '{{ notify_device }}'
+              data:
+                title: !input itinerary_canceled_title
+                message: !input vehicle_away_message
+                data:
+                  car_ui: true
+                  notification_icon: mdi:alert-circle
+                  channel: Itinerary status
+                  importance: high
+                  tag: itinerary-status
+                  timeout: 300
+            - stop: Not in activation zone
+          - service: input_text.set_value
+            data:
+              value: on_approach
+            target:
+              entity_id: '{{ itinerary_sensor }}'
+          - if:
+            - condition: template
+              value_template: '{{ is_state(gate, [''off'', ''closed'', ''closing''])
+                }}'
+            then:
+            - choose:
+              - conditions:
+                - condition: template
+                  value_template: '{{ states[gate].domain == ''switch'' }}'
+                sequence:
+                - service: switch.turn_on
+                  target:
+                    entity_id: !input gate
+              - conditions:
+                - condition: template
+                  value_template: '{{ states[gate].domain == ''cover'' }}'
+                sequence:
+                - service: cover.open_cover
+                  target:
+                    entity_id: !input gate
+            - if:
+              - condition: template
+                value_template: !input opening_notification
+              then:
+              - service: '{{ notify_device }}'
+                data:
+                  title: !input gate_opening_title
+                  message: !input automatic_opening_message
+                  data:
+                    car_ui: true
+                    notification_icon: mdi:gate-open
+                    channel: Gate alerts
+                    importance: high
+                    tag: gate-movement
+                    timeout: 300
+          - if:
+            - condition: template
+              value_template: '{{ automatic_closing != ''off'' }}'
+            then:
+            - wait_for_trigger:
+              - platform: template
+                id: manual
+                value_template: '{{ is_state(gate, [''off'', ''closed'', ''closing''])
+                  }}'
+              - platform: template
+                id: vehicle_left
+                value_template: '{{ is_state(driving_sensor, ''off'') }}'
+              - platform: template
+                id: activation_zone_left
+                value_template: '{{ states(proximity_sensors[idx]) | int > activation_zone
+                  }}'
+              timeout:
+                minutes: !input safety_delay
+            - service: input_text.set_value
+              target:
+                entity_id: '{{ itinerary_sensor }}'
+              data:
+                value: none
+            - if:
+              - condition: template
+                value_template: '{{ wait.trigger.id == ''manual'' }}'
+              then:
+              - service: '{{ notify_device }}'
+                data:
+                  message: clear_notification
+                  data:
+                    tag: itinerary-status
+              else:
+              - if:
+                - condition: or
+                  conditions:
+                  - condition: template
+                    value_template: '{{ driving_sensors | select(''is_state'', ''on_approach'')
+                      | list != [] }}'
+                  - condition: template
+                    value_template: '{{ driving_sensors | select(''is_state'', ''leaving'')
+                      | list != [] }}'
+                then:
+                - variables:
+                    awaiting_persons: "{% set awaiting_sensors = itinerary_sensors
+                      | select('is_state', 'on_approach') | list +\n                          itinerary_sensors
+                      | select('is_state', 'leaving') | list %}\n{% set data = namespace(awaiting_persons=[])
+                      %} {% for i in range(awaiting_sensors|length) %} {% set data.awaiting_persons
+                      = data.awaiting_persons + [state_attr(persons[i], 'friendly_name')]
+                      %} {% endfor %} {{ data.awaiting_persons | join(', ') }}"
+                - service: '{{ notify_device }}'
+                  data:
+                    title: !input awaiting_title
+                    message: !input awaiting_message
+                    data:
+                      car_ui: true
+                      notification_icon: mdi:sleep
+                      channel: Itinerary status
+                      importance: high
+                      tag: itinerary-status
+                - wait_for_trigger:
+                  - platform: template
+                    value_template: '{{ is_state(gate, [''off'', ''closed'', ''closing''])
+                      }}'
+                else:
+                - choose:
+                  - conditions:
+                    - condition: template
+                      value_template: '{{ wait.completed }}'
+                    sequence:
+                    - service: '{{ notify_device }}'
+                      data:
+                        title: !input gate_closing_title
+                        message: !input did_not_arrive_message
+                        data:
+                          car_ui: true
+                          notification_icon: mdi:alert-circle
+                          channel: Gate alerts
+                          importance: high
+                          tag: gate-movement
+                          timeout: 300
+                  - conditions:
+                    - condition: template
+                      value_template: '{{ wait.trigger.id == ''activation_zone_left''
+                        }}'
+                    sequence:
+                    - service: '{{ notify_device }}'
+                      data:
+                        title: !input gate_closing_title
+                        message: !input vehicle_away_message
+                        data:
+                          car_ui: true
+                          notification_icon: mdi:alert-circle
+                          channel: Gate alerts
+                          importance: high
+                          tag: gate-movement
+                          timeout: 300
+                  - conditions:
+                    - condition: template
+                      value_template: '{{ wait.trigger.id == ''vehicle_left'' and
+                        is_state(person, [state_attr(gate_location, ''friendly_name''),
+                        states[gate_location].object_id]) and automatic_closing ==
+                        ''on'' }}'
+                    sequence:
+                    - service: '{{ notify_device }}'
+                      data:
+                        title: !input gate_closing_title
+                        message: !input user_arrival_message
+                        data:
+                          car_ui: true
+                          notification_icon: mdi:flag-checkered
+                          channel: Gate alerts
+                          importance: high
+                          tag: gate-movement
+                          timeout: 300
+                    - delay:
+                        minutes: !input auto_close_arrival_delay
+                  - conditions:
+                    - condition: template
+                      value_template: '{{ wait.trigger.id == ''vehicle_left'' }}'
+                    sequence:
+                    - service: '{{ notify_device }}'
+                      data:
+                        title: !input gate_closing_title
+                        message: !input vehicle_left_message
+                        data:
+                          car_ui: true
+                          notification_icon: mdi:alert-circle
+                          channel: Gate alerts
+                          importance: high
+                          tag: gate-movement
+                          timeout: 300
+                  default:
+                  - service: '{{ notify_device }}'
+                    data:
+                      message: clear_notification
+                      data:
+                        tag: itinerary-status
+                  - stop: Successful
+                - choose:
+                  - conditions:
+                    - condition: template
+                      value_template: '{{ states[gate].domain == ''switch'' }}'
+                    sequence:
+                    - service: switch.turn_off
+                      target:
+                        entity_id: !input gate
+                  - conditions:
+                    - condition: template
+                      value_template: '{{ states[gate].domain == ''cover'' }}'
+                    sequence:
+                    - service: cover.close_cover
+                      target:
+                        entity_id: !input gate
+            - service: '{{ notify_device }}'
+              data:
+                message: clear_notification
+                data:
+                  tag: itinerary-status
+            - stop: Successful
+            else:
+            - wait_for_trigger:
+              - platform: template
+                value_template: '{{ is_state(driving_sensor, ''off'') }}'
+            - service: input_text.set_value
+              target:
+                entity_id: '{{ itinerary_sensor }}'
+              data:
+                value: none
+            - service: '{{ notify_device }}'
+              data:
+                message: clear_notification
+                data:
+                  tag: itinerary-status
+            - if:
+                condition: template
+                value_template: !input opening_notification
+              then:
+              - service: '{{ notify_device }}'
+                data:
+                  message: clear_notification
+                  data:
+                    tag: gate-movement
+            - stop: Successful
+  - service: input_text.set_value
+    data:
+      value: none
+    target:
+      entity_id: '{{ itinerary_sensor }}'
+  - if:
+      condition: template
+      value_template: '{{ is_state(person, [state_attr(gate_location, ''friendly_name''),
+        states[gate_location].object_id]) and states[travel_time_sensor].last_updated
+        < now() - timedelta(minutes=5) }}'
+    then:
+    - service: '{{ notify_device }}'
+      data:
+        title: !input itinerary_canceled_title
+        message: !input travel_time_did_not_respond
+        data:
+          car_ui: true
+          notification_icon: mdi:alert-circle
+          channel: Itinerary status
+          importance: high
+          tag: itinerary-status
+          timeout: 300
+    else:
+    - service: '{{ notify_device }}'
+      data:
+        title: !input itinerary_canceled_title
+        message: !input vehicle_left_message
+        data:
+          car_ui: true
+          notification_icon: mdi:alert-circle
+          channel: Itinerary status
+          importance: high
+          tag: itinerary-status
+          timeout: 300
+mode: parallel
+max: 10

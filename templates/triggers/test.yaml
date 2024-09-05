@@ -1,0 +1,32 @@
+# Update weather every five minutes
+- trigger:
+    # ref: https://www.home-assistant.io/integrations/template#trigger-based-template-binary-sensors-buttons-images-numbers-selects-and-sensors
+    - platform: time_pattern
+      minutes: "/5"
+      seconds: "12" # offset to the 12th second
+    - platform: homeassistant
+      event: start
+    - platform: event
+      event_type: event_template_reloaded
+  action:
+    # ref for 2023.12+ response_variable: https://github.com/home-assistant/core/issues/105160#issuecomment-1843854230
+    - service: weather.get_forecasts
+      data:
+        type: twice_daily
+      target:
+        entity_id:
+          - weather.katy_daynight
+      response_variable: twice_daily_forecast
+  sensor:
+    # ref: https://www.home-assistant.io/integrations/template/#sensor
+    - name: Weather last checked
+      unique_id: weather_last_checked
+      device_class: timestamp
+      state: "{{ now() }}"
+
+    # Next temperature
+
+    - name: Upcoming temperature
+      unique_id: upcoming_temperature
+      state: >
+        {{ twice_daily_forecast['weather.katy_daynight'].forecast[0].temperature }}

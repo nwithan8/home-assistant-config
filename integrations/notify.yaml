@@ -1,4 +1,10 @@
 notify:
+  # Reminders
+  - name: Reminder notification group
+    platform: group
+    services:
+      - service: mobile_app_sexel_pro
+
   # Twilio SMS
   - name: Twilio SMS
     platform: twilio_sms
@@ -26,6 +32,42 @@ notify:
     platform: rest
     method: POST_JSON
     resource: !secret tv_overlay_bedroom_chromecast_notify_fixed
+    verify_ssl: false
+    title_param_name: title
+    data:
+      id: "{{ data.id | default(null) }}"
+      text: "{{ data.text  | default(null) }}"
+      icon: "{{ data.icon | default(null) }}"
+      textColor: "{{ data.textColor | default(null) }}"
+      iconColor: "{{ data.iconColor | default(null) }}"
+      borderColor: "{{ data.borderColor | default(null) }}"
+      backgroundColor: "{{ data.backgroundColor | default(null) }}"
+      shape: "{{ data.shape | default(null) }}"
+      visible: "{{ data.visible | default(true) }}"
+      expiration: "{{ data.expiration | default(null) }}"
+
+  # TV Overlay (Living Room Hisense)
+  - name: TV Overlay Notify (Living Room TV)
+    platform: rest
+    method: POST_JSON
+    resource: !secret tv_overlay_living_room_tv_notify
+    verify_ssl: false
+    title_param_name: title
+    data:
+      id: "{{ data.id | default(null) }}"
+      appTitle: "{{ data.appTitle  | default('Home Assistant') }}"
+      appIcon: "{{ data.appIcon | default('mdi:home-assistant') }}"
+      color: "{{ data.color | default('#049cdb') }}"
+      image: "{{ data.image | default(null) }}"
+      smallIcon: "{{ data.smallIcon | default(null) }}"
+      largeIcon: "{{ data.largeIcon | default(null) }}"
+      corner: "{{ data.corner  | default(null) }}"
+      seconds: "{{ data.seconds | default(null) }}"
+
+  - name: TV Overlay Notify (Fixed) (Living Room TV)
+    platform: rest
+    method: POST_JSON
+    resource: !secret tv_overlay_living_room_tv_notify_fixed
     verify_ssl: false
     title_param_name: title
     data:

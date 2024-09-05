@@ -1,0 +1,129 @@
+blueprint:
+  name: Motion-activated Light with illuminance, nightmode and dimmable
+  description:
+    Turn on a light when motion is detected and illuminance is below a
+    set Lux level. The light will dim before it is turned off to signal that it has
+    not detected motion in quite a while. There is also two timers, on for daytime
+    and one for nighttime.
+  domain: automation
+  input:
+    motion_entity:
+      name: Motion Sensor
+      selector:
+        entity:
+          domain:
+            - binary_sensor
+          device_class:
+            - motion
+          multiple: false
+    lux_entity:
+      name: Illuminance Sensor
+      selector:
+        entity:
+          domain:
+            - sensor
+          device_class:
+            - illuminance
+          multiple: false
+    lux_level:
+      name: Illuminance level
+      description:
+        If lux is below this value and motion is detected, the light will
+        turn on.
+      default: 100
+      selector:
+        number:
+          min: 0.0
+          max: 1000.0
+          step: 1.0
+          mode: slider
+    light_target:
+      name: Light
+      selector:
+        target:
+          entity:
+            - domain:
+                - light
+    dim_time:
+      name: Dim light
+      description:
+        The light will start dim this many seconds before it is turned
+        off if no motion has been detected to signal that the light will soon turn
+        off.
+      default: 30
+      selector:
+        number:
+          min: 0.0
+          max: 120.0
+          unit_of_measurement: seconds
+          step: 1.0
+          mode: slider
+    no_motion_wait_day:
+      name: Wait time (day)
+      description:
+        Time to leave the light on after last motion is detected during
+        the day.
+      default: 300
+      selector:
+        number:
+          min: 0.0
+          max: 600.0
+          unit_of_measurement: seconds
+          step: 1.0
+          mode: slider
+    no_motion_wait_night:
+      name: Wait time (night)
+      description:
+        Time to leave the light on after last motion is detected during
+        the night.
+      default: 120
+      selector:
+        number:
+          min: 0.0
+          max: 600.0
+          unit_of_measurement: seconds
+          step: 1.0
+          mode: slider
+    skip_condition:
+      name: Skip Condition
+      description: Enter an entity that should be used to disable this automation.
+      selector:
+        entity: {}
+      default: ""
+  source_url: https://gist.github.com/Danielbook/ad8dacabb8dc01e7cf062cbd8c1a00ed
+mode: restart
+max_exceeded: silent
+variables:
+  local_motion_delay_day: !input no_motion_wait_day
+  local_motion_delay_night: !input no_motion_wait_night
+  local_motion_dim_time: !input dim_time
+  local_skip_condition: !input skip_condition
+  sun_entity: sun.sun
+trigger:
+  platform: state
+  entity_id: !input motion_entity
+  from: "off"
+  to: "on"
+condition:
+  condition: and
+  conditions:
+    - condition: numeric_state
+      entity_id: !input lux_entity
+      below: !input lux_level
+    - condition: template
+      value_template: >
+        {{ local_skip_condition == '' or is_state(local_skip_condition, 'off') }}
+action:
+  - service: light.turn_on
+    target: !input light_target
+  - wait_for_trigger:
+      platform: state
+      entity_id: !input motion_entity
+      from: "on"
+  - delay: " {% if is_state('sun.sun', 'above_horizon') %}
+      {{ local_motion_delay_day - local_motion_dim_time }} {% else %} {{ local_motion_delay_night
+      - local_motion_dim_time }} {% endif %} "
+  - service: light.turn_off
+    target: !input light_target
+    data:
+      transition: !input dim_time

@@ -1,7 +1,0 @@
-proximity:
-  home:
-    devices:
-      # Track Nate near home
-      - person.nate
-    tolerance: 30
-    unit_of_measurement: ft

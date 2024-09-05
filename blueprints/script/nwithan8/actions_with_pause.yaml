@@ -1,0 +1,34 @@
+blueprint:
+  name: Actions with Pause
+  description: >-
+    A script that executes two actions with a pause between them.
+  domain: script
+  input:
+    first_action:
+      description: (Required) The first action to execute
+      name: First action
+      selector:
+        action:
+    pause:
+      description: (Required) The pause duration between the two
+      name: Pause duration
+      selector:
+        duration:
+          enable_day: true
+          enable_millisecond: true
+    second_action:
+      description: (Required) The second action to execute
+      name: Second action
+      selector:
+        action:
+
+sequence:
+  - choose:
+      - conditions: "{{ true }}"
+        sequence: !input first_action
+  - delay: !input pause
+  - choose:
+      - conditions: "{{ true }}"
+        sequence: !input second_action
+
+mode: single

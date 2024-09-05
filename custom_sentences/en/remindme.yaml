@@ -1,0 +1,70 @@
+language: "en"
+intents:
+  CustomRemindMe:
+    data:
+      - sentences:
+          - "remind me in {duration} {units} (to | about) {reminder}"
+          - "remind me in {duration} {units} in the {partofday} (to | about) {reminder}"
+          - "remind me (to | about) {reminder}"
+          - "remind me [on] {on_day} (to | about) {reminder}"
+          - "remind me [on] {on_day} {partofday} (to | about) {reminder}"
+          - "remind me [on] {on_day} in the {partofday} (to | about) {reminder}"
+          # - "remind me at {time} [to] {reminder}"
+        slots:
+          reminder: leftblank
+
+lists:
+  on_day:
+    values:
+      - in: "today"
+        out: "0"
+      - in: "tonight"
+        out: "0"
+      - in: "tomorrow"
+        out: "1"
+      - in: "sunday"
+        out: "7"
+      - in: "monday"
+        out: "8"
+      - in: "tuesday"
+        out: "9"
+      - in: "wednesday"
+        out: "10"
+      - in: "thursday"
+        out: "11"
+      - in: "friday"
+        out: "12"
+      - in: "saturday"
+        out: "13"
+  units:
+    values:
+      - in: (minute|minutes)
+        out: 1
+      - in: (hour|hours)
+        out: 60
+      - in: (day|days)
+        out: 1440
+      - in: (week|weeks)
+        out: 10080
+      - in: (month|months)
+        out: 43200
+      - in: (year|years)
+        out: 525600
+  partofday:
+    values:
+      - in: "morning"
+        out: "8"
+      - in: "at noon"
+        out: "12"
+      - in: "afternoon"
+        out: "14"
+      - in: "evening"
+        out: "18"
+      - in: "night"
+        out: "21"
+  duration:
+    range:
+      from: 1
+      to: 1000
+  reminder:
+    wildcard: true

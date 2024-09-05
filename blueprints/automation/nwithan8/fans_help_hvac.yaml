@@ -33,13 +33,15 @@ variables:
 
 trigger:
   - id: "cool_on"
-    platform: state
     entity_id: !input hvac
+    platform: state
+    attribute: hvac_action
     to: "cooling"
 
   - id: "cool_off"
-    platform: state
     entity_id: !input hvac
+    platform: state
+    attribute: hvac_action
     from: "cooling"
 
 condition: []

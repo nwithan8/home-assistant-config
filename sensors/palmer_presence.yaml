@@ -1,0 +1,6 @@
+platform: mqtt_room
+name: "Palmer Room Presence"
+device_id: !secret palmer_id
+state_topic: !secret palmer_topic
+timeout: 10
+away_timeout: 10 # After 10 seconds of not reporting, consider the beacon "away"
