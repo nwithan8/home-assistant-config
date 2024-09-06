@@ -1,0 +1,6 @@
+platform: mqtt_room
+name: "Lexi Phone Room Presence"
+device_id: !secret lexi_phone_id
+state_topic: !secret lexi_phone_topic
+timeout: 10
+away_timeout: 120
