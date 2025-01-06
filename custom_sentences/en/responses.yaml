@@ -244,15 +244,3 @@ responses:
         {% else %}
           Yes, {{ slots.yes_explain }}
         {% endif %}
-      trash_schedule_today: |
-        {% if state.state_with_unit == "0" %}
-          Yes
-        {% else %}
-          No
-        {% endif %}
-      trash_schedule_tomorrow: |
-        {% if state.state_with_unit == "1" %}
-          Yes
-        {% else %}
-          No
-        {% endif %}

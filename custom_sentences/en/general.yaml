@@ -1,0 +1,13 @@
+language: "en"
+intents:
+  HassNevermind:
+    data:
+      - sentences:
+          - "nevermind [that]"
+          - "never mind [that]"
+          - "ignore [that]"
+          - "cancel [that]"
+          - "halt [that]"
+          - "disregard [that]"
+          - "abort [that]"
+          - "stop (listening | process | processing | talking)"
